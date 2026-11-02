@@ -215,5 +215,12 @@
   "reminder.notifyTitle": "Saving reminder",
   "reminder.notifyBody": "Your fixed costs are covered. You can save {amount} today.",
   "reminder.invalidDay": "Day between 1 and 31.",
-  "reminder.invalidTime": "Time in HH:MM format."
+  "reminder.invalidTime": "Time in HH:MM format.",
+  "settings.exportHint": "Saves all your data as a file on this device, for example as a backup.",
+  "settings.importHint": "Loads a file you exported before. Your current data will be replaced.",
+  "reminder.enableHint": "Shows a banner on the overview at the chosen time.",
+  "reminder.modeHint": "When the reminder should appear: on payday or on a fixed day of the month.",
+  "fixed.addCostHint": "Add a new recurring payment, e.g. rent or a subscription.",
+  "dash.quickHint": "Enter money that goes into or out of your current account or a savings account.",
+  "assets.refreshHint": "Reloads the current rates. There is a daily request limit."
 }

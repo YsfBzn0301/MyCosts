@@ -42,7 +42,10 @@ export function ReminderSettings({ config, onChange, permission, onRequestPermis
       <h2 className="text-lg font-semibold">{t('reminder.title')}</h2>
 
       <label className="mt-5 flex items-center justify-between gap-4">
-        <span className="text-sm">{t('reminder.enable')}</span>
+        <span>
+          <span className="block text-sm font-medium">{t('reminder.enable')}</span>
+          <span className="block text-xs text-muted">{t('reminder.enableHint')}</span>
+        </span>
         <input type="checkbox" className="peer sr-only" checked={config.enabled} onChange={(e) => onChange({ ...config, enabled: e.target.checked })} />
         <span
           className={`relative h-7 w-12 rounded-full transition-colors duration-300 ${config.enabled ? 'bg-accent' : 'bg-line'}`}
@@ -53,7 +56,8 @@ export function ReminderSettings({ config, onChange, permission, onRequestPermis
       </label>
 
       <div className="mt-5">
-        <p className="text-sm text-muted">{t('reminder.mode')}</p>
+        <p className="text-sm font-medium">{t('reminder.mode')}</p>
+        <p className="mt-0.5 text-xs text-muted">{t('reminder.modeHint')}</p>
         <div role="radiogroup" aria-label={t('reminder.mode')} className="mt-2 grid grid-cols-2 gap-2 rounded-2xl bg-canvas p-1">
           {(['payday', 'day'] as const).map((m) => (
             <button

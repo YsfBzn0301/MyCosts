@@ -215,5 +215,12 @@
   "reminder.notifyTitle": "Birikim hatırlatıcısı",
   "reminder.notifyBody": "Sabit giderlerin karşılandı. Bugün {amount} biriktirebilirsin.",
   "reminder.invalidDay": "1 ile 31 arasında bir gün.",
-  "reminder.invalidTime": "Saat SS:DD biçiminde olmalı."
+  "reminder.invalidTime": "Saat SS:DD biçiminde olmalı.",
+  "settings.exportHint": "Tüm verilerini bu cihazda bir dosya olarak kaydeder, ör. yedek olarak.",
+  "settings.importHint": "Daha önce dışa aktardığın bir dosyayı yükler. Mevcut verilerin değiştirilir.",
+  "reminder.enableHint": "Seçilen zamanda Genel Bakış'ta bir afiş gösterir.",
+  "reminder.modeHint": "Hatırlatıcının ne zaman görüneceği: maaş gününde ya da ayın belirli bir gününde.",
+  "fixed.addCostHint": "Yeni bir düzenli ödeme ekle, ör. kira ya da abonelik.",
+  "dash.quickHint": "Vadesiz hesabına girecek ya da çıkacak parayı gir.",
+  "assets.refreshHint": "Güncel kurları yeniden yükler. Günlük istek sınırı vardır."
 }

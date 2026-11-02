@@ -215,5 +215,12 @@
   "reminder.notifyTitle": "Spar-Erinnerung",
   "reminder.notifyBody": "Deine Fixkosten sind gedeckt. Du kannst heute {amount} sparen.",
   "reminder.invalidDay": "Tag zwischen 1 und 31.",
-  "reminder.invalidTime": "Uhrzeit im Format HH:MM."
+  "reminder.invalidTime": "Uhrzeit im Format HH:MM.",
+  "settings.exportHint": "Speichert alle Daten als Datei auf deinem Gerät, zum Beispiel als Sicherung.",
+  "settings.importHint": "Lädt eine zuvor exportierte Datei. Deine aktuellen Daten werden dabei ersetzt.",
+  "reminder.enableHint": "Zeigt zum gewählten Zeitpunkt ein Banner im Dashboard an.",
+  "reminder.modeHint": "Wann die Erinnerung erscheinen soll: am Gehaltseingang oder an einem festen Tag im Monat.",
+  "fixed.addCostHint": "Eine neue feste Abbuchung anlegen, z. B. Miete oder ein Abo.",
+  "dash.quickHint": "Trage Geld ein, das auf dein Girokonto oder ein Sparkonto kommt oder davon abgeht.",
+  "assets.refreshHint": "Lädt die aktuellen Kurse neu. Es gibt ein Tageskontingent."
 }

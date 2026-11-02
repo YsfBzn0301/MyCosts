@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ChevronDown, KeyRound } from 'lucide-react';
+import { ChevronDown, Download, KeyRound, Upload } from 'lucide-react';
 import { LANG_NAMES, useI18n } from '../i18n';
 import type { Lang, Theme } from '../domain/types';
 import { card, fieldClass, ghostButton, primaryButton } from '../components/fieldStyles';
@@ -71,24 +71,38 @@ export function SettingsPage(p: Props) {
       <section aria-label={t('settings.data')} className={card}>
         <h2 className="text-lg font-semibold">{t('settings.data')}</h2>
         <p className="mt-2 text-sm text-muted">{t('app.localOnly')}</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button onClick={p.onExport} className={ghostButton}>
-            {t('settings.export')}
-          </button>
-          <label className={`${ghostButton} cursor-pointer`}>
-            {t('settings.import')}
-            <input
-              type="file"
-              accept="application/json"
-              className="sr-only"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) p.onImport(file);
-                e.target.value = '';
-              }}
-            />
-          </label>
-        </div>
+        <ul className="mt-5 divide-y divide-line">
+          <li className="flex items-center justify-between gap-4 py-4">
+            <div className="min-w-0">
+              <p className="font-medium">{t('settings.export')}</p>
+              <p className="text-sm text-muted">{t('settings.exportHint')}</p>
+            </div>
+            <button onClick={p.onExport} className={`${ghostButton} inline-flex shrink-0 items-center gap-2`}>
+              <Download size={16} aria-hidden />
+              {t('settings.export')}
+            </button>
+          </li>
+          <li className="flex items-center justify-between gap-4 py-4">
+            <div className="min-w-0">
+              <p className="font-medium">{t('settings.import')}</p>
+              <p className="text-sm text-muted">{t('settings.importHint')}</p>
+            </div>
+            <label className={`${ghostButton} inline-flex shrink-0 cursor-pointer items-center gap-2`}>
+              <Upload size={16} aria-hidden />
+              {t('settings.import')}
+              <input
+                type="file"
+                accept="application/json"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) p.onImport(file);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          </li>
+        </ul>
         {p.notice && <p role="status" className="mt-4 animate-pop text-sm text-accent">{p.notice}</p>}
       </section>
     </div>

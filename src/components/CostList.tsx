@@ -38,7 +38,7 @@ export function CostList({ items, totals, groups, onEdit, onDelete, onCreate }: 
           </div>
           <p className="self-end text-sm text-muted">{t('common.count', { count: totals.count })}</p>
         </div>
-        <button onClick={onCreate} className="rounded-xl px-3 py-2 text-sm font-semibold text-accent hover:bg-accent-soft">
+        <button onClick={onCreate} title={t('fixed.addCostHint')} className="rounded-xl px-3 py-2 text-sm font-semibold text-accent hover:bg-accent-soft">
           {t('fixed.addCost')}
         </button>
       </div>

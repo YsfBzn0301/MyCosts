@@ -31,6 +31,7 @@ export function QuickEntry({ savings, onRecord }: Props) {
   return (
     <section aria-label={t('dash.quickTitle')} className={card}>
       <h2 className="text-lg font-semibold">{t('dash.quickTitle')}</h2>
+      <p className="mt-1 text-sm text-muted">{t('dash.quickHint')}</p>
       <form onSubmit={submit} noValidate className="mt-5 space-y-4">
         <div role="radiogroup" aria-label={t('dash.quickTitle')} className="grid grid-cols-2 gap-2 rounded-2xl bg-canvas p-1">
           {(['in', 'out'] as const).map((d) => (
