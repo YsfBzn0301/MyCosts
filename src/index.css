@@ -125,3 +125,27 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Intro: Kachel mit ausgestanzter Form. Die Aussparungen geben nach und nach den Inhalt frei. */
+.intro-mask {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' fill-rule='evenodd' d='M112,0 H400 A112,112 0 0 1 512,112 V400 A112,112 0 0 1 400,512 H112 A112,112 0 0 1 0,400 V112 A112,112 0 0 1 112,0 Z M152,310 H152 A32,32 0 0 1 184,342 V368 A32,32 0 0 1 152,400 H152 A32,32 0 0 1 120,368 V342 A32,32 0 0 1 152,310 Z M242,250 H242 A32,32 0 0 1 274,282 V368 A32,32 0 0 1 242,400 H242 A32,32 0 0 1 210,368 V282 A32,32 0 0 1 242,250 Z M332,190 H332 A32,32 0 0 1 364,222 V368 A32,32 0 0 1 332,400 H332 A32,32 0 0 1 300,368 V222 A32,32 0 0 1 332,190 Z M330,128 A62,62 0 1 0 454,128 A62,62 0 1 0 330,128 Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' fill-rule='evenodd' d='M112,0 H400 A112,112 0 0 1 512,112 V400 A112,112 0 0 1 400,512 H112 A112,112 0 0 1 0,400 V112 A112,112 0 0 1 112,0 Z M152,310 H152 A32,32 0 0 1 184,342 V368 A32,32 0 0 1 152,400 H152 A32,32 0 0 1 120,368 V342 A32,32 0 0 1 152,310 Z M242,250 H242 A32,32 0 0 1 274,282 V368 A32,32 0 0 1 242,400 H242 A32,32 0 0 1 210,368 V282 A32,32 0 0 1 242,250 Z M332,190 H332 A32,32 0 0 1 364,222 V368 A32,32 0 0 1 332,400 H332 A32,32 0 0 1 300,368 V222 A32,32 0 0 1 332,190 Z M330,128 A62,62 0 1 0 454,128 A62,62 0 1 0 330,128 Z'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: 144px 144px;
+  mask-size: 144px 144px;
+}
+.intro-tile { animation: intro-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.intro-zoom {
+  animation: intro-zoom 1150ms cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+@keyframes intro-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes intro-zoom {
+  from { -webkit-mask-size: 144px 144px; mask-size: 144px 144px; }
+  to { -webkit-mask-size: 420vmax 420vmax; mask-size: 420vmax 420vmax; }
+}

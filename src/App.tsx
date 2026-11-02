@@ -19,7 +19,7 @@ import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { I18nProvider, useI18n } from './i18n';
 import { formatEUR } from './domain/money';
 import { Logo } from './components/Logo';
-import { Splash } from './components/Splash';
+import { Intro, introAlreadyShown } from './components/Intro';
 import { BottomNav, type Tab } from './components/BottomNav';
 import { CostFormDialog } from './components/CostFormDialog';
 import { TransferDialog } from './components/TransferDialog';
@@ -56,7 +56,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   const [dialog, setDialog] = useState<{ cost: FixedCost | null } | null>(null);
   const [transfer, setTransfer] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [splashDone, setSplashDone] = useState(false);
+  const [splashDone, setSplashDone] = useState(() => introAlreadyShown());
   const [dismissed, setDismissed] = useState(false);
   const finishSplash = useCallback(() => setSplashDone(true), []);
 
@@ -197,8 +197,9 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   ) : null;
 
   return (
-    <div className="mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 sm:px-6">
-      {!splashDone && <Splash onDone={finishSplash} />}
+    <>
+    {!splashDone && <Intro onDone={finishSplash} />}
+    <div className={`mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 transition-opacity duration-700 sm:px-6 ${splashDone ? 'opacity-100' : 'opacity-0'}`}>
 
       <header className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -304,6 +305,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
         <TransferDialog amountCents={result.safeSavingsCents} savings={portfolio.savings} onClose={() => setTransfer(false)} onConfirm={confirmTransfer} />
       )}
     </div>
+    </>
   );
 }
 
