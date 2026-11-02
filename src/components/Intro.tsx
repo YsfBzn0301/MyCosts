@@ -29,9 +29,9 @@ export function Intro({ onDone }: { onDone: () => void }) {
       onDone();
       return;
     }
-    // Erst die Kachel zeigen, dann langsam öffnen. Das Ende folgt der Zoom-Dauer.
-    const start = setTimeout(() => setZoom(true), 900);
-    const end = setTimeout(onDone, 3600);
+    // Nur das Logo zeigen, dann in das Logo hineinzoomen. Erst danach erscheint die Übersicht.
+    const start = setTimeout(() => setZoom(true), 1200);
+    const end = setTimeout(onDone, 3900);
     return () => {
       clearTimeout(start);
       clearTimeout(end);
