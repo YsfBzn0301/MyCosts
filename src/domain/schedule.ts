@@ -35,3 +35,29 @@ export function nextDueDate(cycle: Cycle, today: Date): Date {
   }
   return start;
 }
+
+export function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+export function addDays(d: Date, days: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
+}
+
+/** Alle Fälligkeitstermine im Halboffenen Intervall [from, to). */
+export function occurrencesInRange(cycle: Cycle, from: Date, to: Date): Date[] {
+  const out: Date[] = [];
+  const f = startOfDay(from);
+  const t = startOfDay(to);
+  for (let i = 0; ; i++) {
+    const first = new Date(f.getFullYear(), f.getMonth() + i, 1);
+    if (first.getTime() >= t.getTime()) break;
+    const year = first.getFullYear();
+    const month = first.getMonth() + 1;
+    if (!monthMatches(cycle, month)) continue;
+    const lastDay = new Date(year, month, 0).getDate();
+    const candidate = new Date(year, month - 1, Math.min(cycle.dueDay, lastDay));
+    if (candidate >= f && candidate < t) out.push(candidate);
+  }
+  return out;
+}

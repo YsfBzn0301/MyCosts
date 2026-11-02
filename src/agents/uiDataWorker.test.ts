@@ -4,8 +4,8 @@ import {
   computeTotals,
   draftFromCost,
   emptyDraft,
-  exportCostsJson,
-  parseImport,
+  exportBackup,
+  parseBackup,
   removeCost,
   totalsByCategory,
   updateCost,
@@ -82,15 +82,23 @@ describe('CRUD', () => {
   });
 });
 
-describe('Import/Export', () => {
+describe('Backup', () => {
   it('Export → Import ist verlustfrei', () => {
-    const list = addCost([], { name: 'A', amountCents: 100, category: 'other', interval: 'monthly', dueDay: 2 }, new Date());
-    const back = parseImport(exportCostsJson(list));
-    expect(back).toEqual(list);
+    const costs = addCost([], { name: 'A', amountCents: 100, category: 'other', interval: 'monthly', dueDay: 2 }, new Date());
+    const settings = { balanceCents: -500, monthlySpendCents: 1000, safetyCents: 200 };
+    const back = parseBackup(exportBackup({ costs, incomes: [], settings }));
+    expect(back).toEqual({ costs, incomes: [], settings });
+  });
+
+  it('akzeptiert alte Backups (nur Fixkosten)', () => {
+    const costs = addCost([], { name: 'A', amountCents: 100, category: 'other', interval: 'monthly', dueDay: 2 }, new Date());
+    const back = parseBackup(JSON.stringify({ app: 'fixkosten', version: 1, costs }));
+    expect(back?.costs).toEqual(costs);
+    expect(back?.incomes).toEqual([]);
   });
 
   it('lehnt kaputte Dateien ab', () => {
-    expect(parseImport('kein json')).toBeNull();
-    expect(parseImport(JSON.stringify({ costs: [{ id: 1 }] }))).toBeNull();
+    expect(parseBackup('kein json')).toBeNull();
+    expect(parseBackup(JSON.stringify({ costs: [{ id: 1 }] }))).toBeNull();
   });
 });

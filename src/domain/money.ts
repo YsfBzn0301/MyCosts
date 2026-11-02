@@ -10,15 +10,26 @@ export function formatEUR(cents: number): string {
  * Parst deutsche Beträge ("12,99", "1.200,50", "12.99") in Cent.
  * Gibt null zurück, wenn der Wert ungültig oder nicht positiv ist.
  */
-export function parseAmountToCents(input: string): number | null {
+export interface AmountOptions {
+  allowZero?: boolean;
+  allowNegative?: boolean;
+}
+
+export function parseAmountToCents(input: string, opts: AmountOptions = {}): number | null {
   let s = input.trim().replace(/\s/g, '');
+  const negative = s.startsWith('-');
+  if (negative) {
+    if (!opts.allowNegative) return null;
+    s = s.slice(1);
+  }
   if (s.includes(',')) {
     // Deutsches Format: Punkte sind Tausendertrenner, Komma ist Dezimaltrenner.
     s = s.replace(/\./g, '').replace(',', '.');
   }
   if (!/^\d{1,7}(\.\d{1,2})?$/.test(s)) return null;
   const cents = Math.round(Number(s) * 100);
-  return cents > 0 ? cents : null;
+  if (cents === 0 && !opts.allowZero) return null;
+  return negative ? -cents : cents;
 }
 
 /** Cent-Betrag als Eingabestring im deutschen Format, z. B. 1299 → "12,99". */

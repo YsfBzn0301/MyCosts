@@ -34,3 +34,28 @@ export interface FixedCost {
 
 /** Wert aus dem Formular, bereits validiert. */
 export type FixedCostValues = Omit<FixedCost, 'id' | 'createdAt' | 'updatedAt'>;
+
+/** Monatlich wiederkehrende Einnahme (z. B. Gehalt). */
+export interface Income {
+  id: string;
+  name: string;
+  amountCents: number;
+  /** Tag im Monat, an dem das Geld eingeht (1–31). */
+  payDay: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type IncomeValues = Omit<Income, 'id' | 'createdAt' | 'updatedAt'>;
+
+/** Girokonto und Verbrauchsannahmen, alle Beträge in Cent. */
+export interface CashSettings {
+  /** Aktueller Stand des Girokontos. Darf negativ sein. */
+  balanceCents: number;
+  /** Lebenshaltung pro Monat (ohne Fixkosten), z. B. Essen, Tanken. */
+  monthlySpendCents: number;
+  /** Sicherheitspuffer, der immer auf dem Girokonto bleiben soll. */
+  safetyCents: number;
+}
+
+export const DEFAULT_SETTINGS: CashSettings = { balanceCents: 0, monthlySpendCents: 0, safetyCents: 0 };

@@ -4,7 +4,7 @@
  */
 import { CATEGORIES, isCategoryId, type CategoryId } from '../domain/categories';
 import { parseAmountToCents, yearlyCents } from '../domain/money';
-import type { FixedCost, FixedCostValues, Interval } from '../domain/types';
+import { DEFAULT_SETTINGS, type CashSettings, type FixedCost, type FixedCostValues, type Income, type Interval } from '../domain/types';
 
 export interface FormDraft {
   name: string;
@@ -137,21 +137,49 @@ export function totalsByCategory(list: FixedCost[]): CategoryTotal[] {
     .sort((a, b) => b.monthlyCents - a.monthlyCents);
 }
 
-// ---------- Import / Export ----------
+// ---------- Backup (Import / Export) ----------
 
-export function exportCostsJson(list: FixedCost[]): string {
-  return JSON.stringify({ app: 'fixkosten', version: 1, exportedAt: new Date().toISOString(), costs: list }, null, 2);
+export interface Backup {
+  costs: FixedCost[];
+  incomes: Income[];
+  settings: CashSettings;
 }
 
-export function parseImport(text: string): FixedCost[] | null {
+export function exportBackup(data: Backup): string {
+  return JSON.stringify({ app: 'fixkosten', version: 2, exportedAt: new Date().toISOString(), ...data }, null, 2);
+}
+
+/** Akzeptiert Version 2 (alles) und Version 1 (nur Fixkosten). */
+export function parseBackup(text: string): Backup | null {
   try {
-    const data = JSON.parse(text) as { costs?: unknown };
-    if (!data || !Array.isArray(data.costs)) return null;
-    const valid = data.costs.filter(isFixedCost);
-    return valid.length === data.costs.length ? valid : null;
+    const data = JSON.parse(text) as Partial<Backup> & { version?: number };
+    if (!data || !Array.isArray(data.costs) || !data.costs.every(isFixedCost)) return null;
+    const incomes = Array.isArray(data.incomes) ? data.incomes.filter(isIncome) : [];
+    const settings = isSettings(data.settings) ? data.settings : DEFAULT_SETTINGS;
+    return { costs: data.costs, incomes, settings };
   } catch {
     return null;
   }
+}
+
+export function isIncome(value: unknown): value is Income {
+  if (!value || typeof value !== 'object') return false;
+  const i = value as Partial<Income>;
+  return (
+    typeof i.id === 'string' &&
+    typeof i.name === 'string' &&
+    typeof i.amountCents === 'number' &&
+    i.amountCents > 0 &&
+    typeof i.payDay === 'number' &&
+    i.payDay >= 1 &&
+    i.payDay <= 31
+  );
+}
+
+export function isSettings(value: unknown): value is CashSettings {
+  if (!value || typeof value !== 'object') return false;
+  const s = value as Partial<CashSettings>;
+  return typeof s.balanceCents === 'number' && typeof s.monthlySpendCents === 'number' && typeof s.safetyCents === 'number';
 }
 
 export function isFixedCost(value: unknown): value is FixedCost {
