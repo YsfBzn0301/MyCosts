@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { AnimatedEUR } from '../components/AnimatedEUR';
 import { NetWorthChart } from '../components/NetWorthChart';
 import { QuickEntry } from '../components/QuickEntry';
@@ -7,7 +7,7 @@ import { card } from '../components/fieldStyles';
 import type { NetWorth } from '../domain/portfolio';
 import { formatEUR } from '../domain/money';
 import { formatDate } from '../domain/format';
-import type { NetWorthPoint, SavingsAccount, Transaction, Asset } from '../domain/types';
+import type { GoalKind, NetWorthPoint, SavingsAccount, Transaction, Asset } from '../domain/types';
 import { useI18n } from '../i18n';
 import { CHECKING_ID } from '../agents/portfolioWorker';
 
@@ -18,11 +18,14 @@ interface Props {
   transactions: Transaction[];
   history: NetWorthPoint[];
   onRecord: (tx: Transaction) => void;
-  onAddSavings: (name: string, cents: number) => void;
   onUpdateSavings: (id: string, cents: number) => void;
+  onUpdatePlan: (id: string, cents: number) => void;
+  onRemoveSavings: (id: string) => void;
+  onAddSavings: (name: string, cents: number, kind: GoalKind, plan: number) => void;
+  banner: ReactNode;
 }
 
-export function DashboardPage({ nw, savings, assets, transactions, history, onRecord, onAddSavings, onUpdateSavings }: Props) {
+export function DashboardPage({ nw, savings, assets, transactions, history, onRecord, onAddSavings, onUpdateSavings, onUpdatePlan, onRemoveSavings, banner }: Props) {
   const { t } = useI18n();
 
   const labels = useMemo(() => {
@@ -37,6 +40,8 @@ export function DashboardPage({ nw, savings, assets, transactions, history, onRe
 
   return (
     <div className="space-y-6">
+      {banner}
+
       <section aria-label={t('dash.netWorth')} className="px-1 pt-2">
         <p className="text-sm text-muted">{t('dash.netWorth')}</p>
         <p className="mt-1 text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">
@@ -66,7 +71,7 @@ export function DashboardPage({ nw, savings, assets, transactions, history, onRe
       </section>
 
       <QuickEntry savings={savings} onRecord={onRecord} />
-      <SavingsPanel savings={savings} onAdd={onAddSavings} onUpdateBalance={onUpdateSavings} />
+      <SavingsPanel savings={savings} onAdd={onAddSavings} onUpdateBalance={onUpdateSavings} onUpdatePlan={onUpdatePlan} onRemove={onRemoveSavings} />
 
       <section aria-label={t('dash.recent')} className={card}>
         <h2 className="text-lg font-semibold">{t('dash.recent')}</h2>

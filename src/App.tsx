@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { FixedCost, FixedCostValues, Transaction, Theme } from './domain/types';
+import type { FixedCost, FixedCostValues, GoalKind, Transaction, Theme } from './domain/types';
 import { nextDueDate } from './domain/schedule';
 import { computeNetWorth } from './domain/portfolio';
 import { monthOverview } from './domain/cashflow';
@@ -7,19 +7,23 @@ import { routeBudget } from './agents/budgetRouter';
 import { predictWarnings } from './agents/cashflowPredictor';
 import { computeTotals, exportBackup, parseBackup, totalsByCategory } from './agents/uiDataWorker';
 import { CHECKING_ID, type NewAsset } from './agents/portfolioWorker';
+import { isDue, plannedGoals, stateFor, sumPlans, type ReminderState } from './agents/reminderAgent';
 import { useCosts } from './hooks/useCosts';
 import { useFinance } from './hooks/useFinance';
 import { usePortfolio } from './hooks/usePortfolio';
 import { useFx } from './hooks/useFx';
 import { usePrefs } from './hooks/usePrefs';
+import { useReminder, showSystemNotification } from './hooks/useReminder';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { I18nProvider, useI18n } from './i18n';
+import { formatEUR } from './domain/money';
 import { Logo } from './components/Logo';
 import { Splash } from './components/Splash';
 import { BottomNav, type Tab } from './components/BottomNav';
 import { CostFormDialog } from './components/CostFormDialog';
 import { TransferDialog } from './components/TransferDialog';
+import { ReminderBanner } from './components/ReminderBanner';
 import { DashboardPage } from './pages/DashboardPage';
 import { FixedPage } from './pages/FixedPage';
 import { AssetsPage } from './pages/AssetsPage';
@@ -36,12 +40,15 @@ export default function App() {
   );
 }
 
+const isoDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   const { t } = useI18n();
   const costsState = useCosts();
   const finance = useFinance();
   const portfolio = usePortfolio();
   const fx = useFx(useMemo(() => portfolio.assets.map((a) => a.code), [portfolio.assets]));
+  const reminder = useReminder();
   const online = useOnlineStatus();
   const { canInstall, install } = useInstallPrompt();
 
@@ -50,7 +57,15 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   const [transfer, setTransfer] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [splashDone, setSplashDone] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const finishSplash = useCallback(() => setSplashDone(true), []);
+
+  // Uhr für die Erinnerung: jede Minute prüfen, ob sie fällig ist.
+  const [clock, setClock] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setClock(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const { costs, upsert, remove } = costsState;
   const { incomes, settings } = finance;
@@ -75,6 +90,44 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
     if (nw.assetsKnown) recordNetWorth(nw.totalCents);
   }, [nw.totalCents, nw.assetsKnown, recordNetWorth]);
 
+  // Erinnerung: fällig, nicht erledigt, und ggf. eine System-Benachrichtigung.
+  const payDays = useMemo(() => incomes.map((i) => i.payDay), [incomes]);
+  const due = isDue(reminder.config, clock, payDays);
+  const remState: ReminderState = stateFor(reminder.state, clock);
+  const goals = useMemo(() => plannedGoals(portfolio.savings), [portfolio.savings]);
+  const showBanner = reminder.config.enabled && due && !remState.done && !dismissed;
+
+  useEffect(() => {
+    if (!due || !reminder.config.notify || remState.notified || reminder.permission !== 'granted') return;
+    void showSystemNotification(t('reminder.notifyTitle'), t('reminder.notifyBody', { amount: formatEUR(result.safeSavingsCents) }));
+    reminder.setState({ ...remState, notified: true });
+    // Bewusst nur bei Fälligkeit und Berechtigung auslösen. `remState` wird über `notified` abgesichert.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [due, reminder.config.notify, remState.notified, reminder.permission]);
+
+  const toggleGoal = (id: string) => {
+    const checked = remState.checked.includes(id) ? remState.checked.filter((x) => x !== id) : [...remState.checked, id];
+    reminder.setState({ ...remState, checked });
+  };
+
+  const bookGoals = () => {
+    const ids = remState.checked.filter((id) => goals.some((g) => g.id === id));
+    const total = sumPlans(goals, ids);
+    if (total <= 0 || total > result.safeSavingsCents) return;
+    const date = isoDate(new Date());
+    const txs: Transaction[] = goals
+      .filter((g) => ids.includes(g.id))
+      .flatMap((g) => [
+        { id: crypto.randomUUID(), date, accountId: CHECKING_ID, amountCents: -(g.planCents ?? 0), note: g.name },
+        { id: crypto.randomUUID(), date, accountId: g.id, amountCents: g.planCents ?? 0, note: t('fixed.transfer') },
+      ]);
+    const r = portfolio.commitTransactions(txs, settings.balanceCents);
+    finance.setSettings({ ...settings, balanceCents: r.checkingCents });
+    reminder.setState({ ...remState, done: true, checked: ids });
+    setNotice(t('reminder.booked', { amount: formatEUR(total) }));
+    setTimeout(() => setNotice(null), 2600);
+  };
+
   const recordEntry = (tx: Transaction) => {
     const r = portfolio.commitTransactions([tx], settings.balanceCents);
     finance.setSettings({ ...settings, balanceCents: r.checkingCents });
@@ -86,14 +139,13 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
     const amount = result.safeSavingsCents;
     const target = portfolio.savings.find((s) => s.id === savingsId);
     if (!target || amount <= 0) return setTransfer(false);
-    const now = new Date();
-    const date = now.toISOString().slice(0, 10);
+    const date = isoDate(new Date());
     const out: Transaction = { id: crypto.randomUUID(), date, accountId: CHECKING_ID, amountCents: -amount, note: target.name };
     const inn: Transaction = { id: crypto.randomUUID(), date, accountId: savingsId, amountCents: amount, note: t('fixed.transfer') };
     const r = portfolio.commitTransactions([out, inn], settings.balanceCents);
     finance.setSettings({ ...settings, balanceCents: r.checkingCents });
     setTransfer(false);
-    setNotice(t('fixed.transferDone', { amount: (amount / 100).toFixed(2).replace('.', ','), name: target.name }));
+    setNotice(t('fixed.transferDone', { amount: formatEUR(amount), name: target.name }));
     setTimeout(() => setNotice(null), 2600);
   };
 
@@ -104,6 +156,10 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   const handleDeleteCost = (cost: FixedCost) => {
     if (window.confirm(t('fixed.deleteConfirm', { name: cost.name }))) remove(cost.id);
   };
+  const handleRemoveSavings = (id: string) => {
+    const s = portfolio.savings.find((x) => x.id === id);
+    if (s && window.confirm(t('goal.deleteConfirm', { name: s.name }))) portfolio.removeSavingsAccount(id);
+  };
 
   const handleExport = () => {
     const blob = new Blob(
@@ -113,7 +169,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fixkosten-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `fixkosten-${isoDate(new Date())}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -129,6 +185,16 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   };
 
   const storageFailed = costsState.saveFailed || finance.saveFailed;
+  const banner = showBanner ? (
+    <ReminderBanner
+      goals={goals}
+      safeCents={result.safeSavingsCents}
+      checked={remState.checked}
+      onToggle={toggleGoal}
+      onBook={bookGoals}
+      onLater={() => setDismissed(true)}
+    />
+  ) : null;
 
   return (
     <div className="mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 sm:px-6">
@@ -169,8 +235,11 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
             transactions={portfolio.transactions}
             history={portfolio.history}
             onRecord={recordEntry}
-            onAddSavings={portfolio.addSavingsAccount}
+            onAddSavings={(name, cents, kind: GoalKind, plan) => portfolio.addSavingsAccount(name, cents, kind, plan)}
             onUpdateSavings={portfolio.updateSavingsBalance}
+            onUpdatePlan={portfolio.updateSavingsPlan}
+            onRemoveSavings={handleRemoveSavings}
+            banner={banner}
           />
         )}
         {tab === 'fixed' && (
@@ -217,6 +286,10 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
             apiKey={fx.apiKey}
             onSaveKey={fx.setApiKey}
             onRemoveKey={fx.clearApiKey}
+            reminder={reminder.config}
+            onReminder={reminder.setConfig}
+            permission={reminder.permission}
+            onRequestPermission={() => void reminder.requestPermission()}
             onExport={handleExport}
             onImport={handleImport}
             notice={notice}

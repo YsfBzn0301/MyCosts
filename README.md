@@ -19,6 +19,17 @@ helles und dunkles Design.
 - **Einstellungen:** Sprache, Darstellung (hell, dunkel, oder wie das Gerät), fastFOREX-Key mit
   Schritt-für-Schritt-Anleitung, Export und Import.
 
+## Spar-Erinnerung
+
+- In den Einstellungen festlegen: am Gehaltseingang oder an einem festen Tag, mit Uhrzeit.
+- Zum Zeitpunkt erscheint im Dashboard ein Banner. Ausgewählte Ziel-Töpfe werden mit ihrem
+  Monatsbetrag vom Girokonto gebucht. Die Auswahl wird nur gebucht, wenn sie den sicheren
+  Betrag nicht übersteigt.
+- Optional eine System-Benachrichtigung über den Service Worker. Sie erscheint, wenn die App
+  geöffnet oder kürzlich genutzt wurde. Ein Tipp auf die Benachrichtigung öffnet die App.
+- Ohne Server kann eine geschlossene App nicht zur Uhrzeit benachrichtigen. Das wäre ein
+  Web-Push-Server, der bewusst nicht gebaut ist.
+
 ## Architektur
 
 ```
@@ -39,6 +50,7 @@ src/
 | `budgetRouter.ts`, `uiDataWorker.ts`, `portfolioWorker.ts` | Agent 1: Validierung, CRUD, Berechnung, Backup | deterministisch |
 | `fxConverter.ts` | Agent 2: Kurse holen, zwischenspeichern, Tageskontingent, umrechnen | deterministisch, Netzwerk |
 | `cashflowPredictor.ts` | Warnungen aus der Prognose | deterministisch |
+| `reminderAgent.ts` | Fälligkeit der Erinnerung, Pläne, Auswahl gegen den sicheren Betrag | deterministisch |
 
 Die Agenten nutzen kein Sprachmodell. Dafür gibt es keine API-Kosten und keinen Server.
 **Agent 3 (Finanzanalyse mit Claude) ist nicht implementiert.** Er braucht einen Server, damit der

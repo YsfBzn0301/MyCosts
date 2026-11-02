@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Asset, NetWorthPoint, SavingsAccount, Transaction } from '../domain/types';
+import type { Asset, GoalKind, NetWorthPoint, SavingsAccount, Transaction } from '../domain/types';
 import { loadAssets, loadHistory, loadSavings, loadTransactions, saveAssets, saveHistory, saveSavings, saveTransactions } from '../storage/portfolioRepository';
 import { addAsset, addSavings, applyTransaction, removeAsset, type NewAsset } from '../agents/portfolioWorker';
 
@@ -19,8 +19,16 @@ export function usePortfolio() {
   useEffect(() => void saveTransactions(transactions), [transactions]);
   useEffect(() => void saveHistory(history), [history]);
 
-  const addSavingsAccount = useCallback((name: string, balanceCents: number) => {
-    setSavings((prev) => addSavings(prev, name, balanceCents));
+  const addSavingsAccount = useCallback((name: string, balanceCents: number, kind: GoalKind = 'savings', planCents = 0) => {
+    setSavings((prev) => addSavings(prev, name, balanceCents, new Date(), kind, planCents));
+  }, []);
+
+  const updateSavingsPlan = useCallback((id: string, planCents: number) => {
+    setSavings((prev) => prev.map((a) => (a.id === id ? { ...a, planCents, updatedAt: new Date().toISOString() } : a)));
+  }, []);
+
+  const removeSavingsAccount = useCallback((id: string) => {
+    setSavings((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
   const updateSavingsBalance = useCallback((id: string, balanceCents: number) => {
@@ -72,6 +80,8 @@ export function usePortfolio() {
     history,
     addSavingsAccount,
     updateSavingsBalance,
+    updateSavingsPlan,
+    removeSavingsAccount,
     addAssetItem,
     removeAssetItem,
     commitTransactions,

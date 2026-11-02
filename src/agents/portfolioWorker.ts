@@ -5,7 +5,7 @@
  */
 import { parseAmountToCents } from '../domain/money';
 import { CURRENCY_CODES, METAL_CODES } from '../domain/assets';
-import type { Asset, CurrencyCode, MetalCode, SavingsAccount, Transaction } from '../domain/types';
+import type { Asset, CurrencyCode, GoalKind, MetalCode, SavingsAccount, Transaction } from '../domain/types';
 
 /** Asset ohne id und Zeitstempel, bleibt über die Union erhalten. */
 export type NewAsset = Asset extends infer A ? (A extends Asset ? Omit<A, 'id' | 'createdAt'> : never) : never;
@@ -30,9 +30,16 @@ export function validateSavings(d: SavingsDraft): { ok: true; values: { name: st
   return { ok: true, values: { name, balanceCents } };
 }
 
-export function addSavings(list: SavingsAccount[], name: string, balanceCents: number, now = new Date()): SavingsAccount[] {
+export function addSavings(
+  list: SavingsAccount[],
+  name: string,
+  balanceCents: number,
+  now = new Date(),
+  kind: GoalKind = 'savings',
+  planCents = 0,
+): SavingsAccount[] {
   const stamp = now.toISOString();
-  return [...list, { id: crypto.randomUUID(), name, balanceCents, createdAt: stamp, updatedAt: stamp }];
+  return [...list, { id: crypto.randomUUID(), name, balanceCents, kind, planCents, createdAt: stamp, updatedAt: stamp }];
 }
 
 // ---------- Bestände ----------

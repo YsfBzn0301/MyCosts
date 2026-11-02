@@ -60,11 +60,17 @@ export interface CashSettings {
 
 export const DEFAULT_SETTINGS: CashSettings = { balanceCents: 0, monthlySpendCents: 0, safetyCents: 0 };
 
-/** Sparkonto oder Depot mit manuell gepflegtem Stand. */
+export type GoalKind = 'savings' | 'fund' | 'crypto' | 'gold';
+
+/** Ziel-Topf (Sparkonto, Fonds, Krypto, Gold) mit manuell gepflegtem Stand. */
 export interface SavingsAccount {
   id: string;
   name: string;
   balanceCents: number;
+  /** Fehlt bei älteren Daten: dann gilt "savings". */
+  kind?: GoalKind;
+  /** Monatlicher Sparbetrag für diesen Topf. Fehlt oder 0: kein Plan. */
+  planCents?: number;
   createdAt: string;
   updatedAt: string;
 }

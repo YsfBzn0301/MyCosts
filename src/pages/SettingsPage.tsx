@@ -3,6 +3,9 @@ import { ChevronDown, KeyRound } from 'lucide-react';
 import { LANG_NAMES, useI18n } from '../i18n';
 import type { Lang, Theme } from '../domain/types';
 import { card, fieldClass, ghostButton, primaryButton } from '../components/fieldStyles';
+import { ReminderSettings } from '../components/ReminderSettings';
+import type { ReminderConfig } from '../agents/reminderAgent';
+import type { NotifyPermission } from '../hooks/useReminder';
 
 interface Props {
   lang: Lang;
@@ -12,6 +15,10 @@ interface Props {
   apiKey: string | null;
   onSaveKey: (k: string) => void;
   onRemoveKey: () => void;
+  reminder: ReminderConfig;
+  onReminder: (c: ReminderConfig) => void;
+  permission: NotifyPermission;
+  onRequestPermission: () => void;
   onExport: () => void;
   onImport: (file: File) => void;
   notice: string | null;
@@ -56,6 +63,8 @@ export function SettingsPage(p: Props) {
           ))}
         </div>
       </section>
+
+      <ReminderSettings config={p.reminder} onChange={p.onReminder} permission={p.permission} onRequestPermission={p.onRequestPermission} />
 
       <FxKeyPanel apiKey={p.apiKey} onSave={p.onSaveKey} onRemove={p.onRemoveKey} />
 
