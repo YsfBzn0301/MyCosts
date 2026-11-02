@@ -109,6 +109,21 @@ export function SettingsPage(p: Props) {
   );
 }
 
+const FX_URL = 'https://www.fastforex.io/';
+
+/** Macht den Domainnamen im Anleitungstext zu einem Link. Gilt für alle Sprachen. */
+function linkify(text: string) {
+  return text.split(/(fastforex\.io)/).map((part, i) =>
+    part === 'fastforex.io' ? (
+      <a key={i} href={FX_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-accent underline underline-offset-2 hover:text-ink">
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
+}
+
 function FxKeyPanel({ apiKey, onSave, onRemove }: { apiKey: string | null; onSave: (k: string) => void; onRemove: () => void }) {
   const { t } = useI18n();
   const [value, setValue] = useState('');
@@ -160,7 +175,7 @@ function FxKeyPanel({ apiKey, onSave, onRemove }: { apiKey: string | null; onSav
           {[1, 2, 3, 4].map((n) => (
             <li key={n} className="flex gap-3">
               <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">{n}</span>
-              <span>{t(`settings.guide${n}`)}</span>
+              <span>{linkify(t(`settings.guide${n}`))}</span>
             </li>
           ))}
         </ol>
