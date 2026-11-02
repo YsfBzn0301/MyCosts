@@ -5,25 +5,46 @@ Die Daten liegen lokal im Browser, die App funktioniert offline. Es gibt keinen 
 
 ## Funktionen
 
-- Dashboard: Summe monatlich und jährlich hochgerechnet, nächste Fälligkeit, Verteilung nach Kategorie
-- Posten anlegen, bearbeiten, löschen (Name, Betrag, Kategorie, Intervall, Fälligkeitstag bzw. -monat)
-- Intervalle: monatlich, vierteljährlich, jährlich, inkl. Umrechnung auf Monat und Jahr
-- Import und Export als JSON (Backup)
-- PWA: Manifest, Service Worker, Offline-Start, Install-Button
+- **Monatsplanung & Sparbetrag:** Gehalt und weitere feste Einnahmen mit Zahltag erfassen.
+  Die App berechnet daraus, wie viel du **sofort sicher aufs Sparkonto** überweisen kannst.
+- **Restpuffer:** Betrag, der bis zum nächsten Gehalt zwingend auf dem Girokonto bleiben muss,
+  damit alle Fixkosten ohne Überziehung abgebucht werden.
+- **Prognose:** Tagesgenauer Kontostand bis zum Gehalt. Zeigt den ersten Tag mit Unterdeckung.
+- **Warnungen:** Überziehung, Unterschreitung des Sicherheitspuffers, negative Monatsplanung.
+- **Fixkosten:** Miete, Abos, Versicherungen usw. mit Intervall (monatlich, vierteljährlich,
+  jährlich) und Abbuchungstag. Anzeige der Abbuchungen des laufenden Monats.
+- **Import und Export** als JSON (Backup inkl. Einnahmen und Einstellungen).
+- **PWA:** Manifest, Service Worker, Offline-Start, Install-Button.
+
+Die gesamte Berechnung läuft lokal im Browser. Es gibt keine KI-Funktionen und keinen Server.
 
 ## Struktur
 
 ```
 src/
-  domain/      Geld (Cent-Ganzzahlen), Fälligkeiten, Kategorien, Typen
-  agents/      uiDataWorker.ts: Validierung, CRUD, Summen, Import/Export
-  storage/     localStorage-Repository (versioniert)
-  hooks/       Daten, Online-Status, Install-Prompt
+  domain/      Geld (Cent-Ganzzahlen), Fälligkeiten, Cashflow-Kern, Kategorien, Typen
+  agents/      Lokale Module ohne externe Dienste:
+               budgetRouter.ts      Validierung, CRUD, Routing (Puffer, Sparbetrag)
+               cashflowPredictor.ts Warnungen aus der Prognose
+               uiDataWorker.ts      Validierung und Summen der Fixkosten, Backup
+  storage/     localStorage-Repositories (versioniert)
+  hooks/       Daten, Einnahmen, Online-Status, Install-Prompt
   components/  UI
 public/        manifest.webmanifest, sw.js, Icons
 scripts/       make-icons.py (erzeugt die PNG-Icons)
 .github/workflows/pages.yml   Tests, Build und Deploy auf GitHub Pages
 ```
+
+Die Module unter `agents/` sind deterministisch. Sie sind als Module getrennt, damit man später
+einzelne Teile austauschen kann, ohne den Rechenkern anzufassen.
+
+## Rechenlogik in Kürze
+
+- **Fenster:** heute bis einen Tag vor dem nächsten Gehaltseingang (ohne Einnahme: 30 Tage).
+- **Restpuffer** = Fixkosten im Fenster + Lebenshaltung pro Tag × Tage im Fenster + Sicherheitspuffer.
+- **Sicherer Sparbetrag** = Girokonto-Stand − Restpuffer (mindestens 0).
+- **Planung pro Monat** = Einnahmen − Fixkosten (auf Monat umgerechnet) − Lebenshaltung.
+- Lebenshaltung pro Tag = Monatswert × 12 / 365.
 
 ## Lokal ausführen
 
@@ -80,4 +101,5 @@ python3 scripts/make-icons.py
 
 - Die Daten bleiben auf dem Gerät. Vor dem Browserwechsel, dem Löschen des Browser-Speichers
   oder einem Gerätewechsel bitte exportieren.
-- Die App ist ein Werkzeug zur Übersicht und ersetzt keine Finanzberatung.
+- Die App ist ein Werkzeug zur Übersicht und ersetzt keine Finanzberatung. Die Prognose
+basiert auf den eingetragenen Werten; Abweichungen durch spontane Ausgaben sind möglich.
