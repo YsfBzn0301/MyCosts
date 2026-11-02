@@ -1,12 +1,8 @@
 /**
- * Agent 1 – UI & Local Data Worker.
- *
- * Reine, deterministische Logik: Validierung, CRUD, Summen, Import/Export.
- * Bewusst OHNE LLM-Aufruf – diese Aufgaben brauchen keine Tokens und wären
- * mit einem Modell nur langsamer und teurer. Die einzige Stelle, an der ein
- * Modell sinnvoll ist, sind Kategorie-Vorschläge (Agent 2) und Analysen (Agent 3).
+ * Lokale Daten-Logik: Validierung, CRUD, Summen, Import/Export.
+ * Rein deterministisch, ohne externe Dienste.
  */
-import { CATEGORIES, isCategoryId, type CategoryId } from '../../shared/categories';
+import { CATEGORIES, isCategoryId, type CategoryId } from '../domain/categories';
 import { parseAmountToCents, yearlyCents } from '../domain/money';
 import type { FixedCost, FixedCostValues, Interval } from '../domain/types';
 

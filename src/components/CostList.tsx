@@ -1,4 +1,4 @@
-import { CATEGORIES, type CategoryId } from '../../shared/categories';
+import { CATEGORIES, type CategoryId } from '../domain/categories';
 import { formatEUR, monthlyCents } from '../domain/money';
 import { INTERVAL_LABELS, type FixedCost } from '../domain/types';
 import { dateFormat } from './format';

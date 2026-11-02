@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { CATEGORIES } from '../../shared/categories';
+import { CATEGORIES } from '../domain/categories';
 import { INTERVAL_LABELS, type FixedCost, type FixedCostValues, type Interval } from '../domain/types';
 import {
   draftFromCost,
@@ -8,7 +8,6 @@ import {
   type FieldErrors,
   type FormDraft,
 } from '../agents/uiDataWorker';
-import { suggestCategory } from '../agents/categorizer';
 
 interface Props {
   cost: FixedCost | null;
@@ -35,33 +34,13 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState<FormDraft>(() => (cost ? draftFromCost(cost) : emptyDraft()));
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [hint, setHint] = useState<string | null>(null);
-  const [suggesting, setSuggesting] = useState(false);
-  const categoryTouched = useRef(Boolean(cost));
-  const controller = useRef<AbortController | null>(null);
 
   useEffect(() => {
     ref.current?.showModal();
-    return () => controller.current?.abort();
   }, []);
 
   const update = <K extends keyof FormDraft>(key: K, value: FormDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
-
-  async function onNameBlur() {
-    if (categoryTouched.current || draft.name.trim().length < 2 || draft.category) return;
-    controller.current?.abort();
-    const ctrl = new AbortController();
-    controller.current = ctrl;
-    setSuggesting(true);
-    const suggestion = await suggestCategory(draft.name, ctrl.signal);
-    if (ctrl.signal.aborted) return;
-    setSuggesting(false);
-    if (suggestion && !categoryTouched.current) {
-      setDraft((d) => ({ ...d, category: suggestion }));
-      setHint('Automatisch zugeordnet – du kannst es ändern.');
-    }
-  }
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -98,7 +77,6 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
               aria-invalid={Boolean(errors.name)}
               placeholder="z. B. Netflix, Kaltmiete"
               onChange={(e) => update('name', e.target.value)}
-              onBlur={onNameBlur}
             />
           )}
         </Field>
@@ -132,27 +110,20 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
 
         <Field label="Kategorie" error={errors.category}>
           {(id) => (
-            <>
               <select
                 id={id}
                 className={inputClass}
                 value={draft.category}
                 aria-invalid={Boolean(errors.category)}
-                onChange={(e) => {
-                  categoryTouched.current = true;
-                  setHint(null);
-                  update('category', e.target.value as FormDraft['category']);
-                }}
+                onChange={(e) => update('category', e.target.value as FormDraft['category'])}
               >
-                <option value="">{suggesting ? 'KI ordnet zu …' : 'Bitte wählen'}</option>
+                <option value="">Bitte wählen</option>
                 {CATEGORIES.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.label}
                   </option>
                 ))}
               </select>
-              {hint && <span className="mt-1 block text-xs text-indigo-600">{hint}</span>}
-            </>
           )}
         </Field>
 

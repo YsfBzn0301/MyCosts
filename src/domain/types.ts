@@ -1,6 +1,6 @@
-import type { CategoryId } from '../../shared/categories';
+import type { CategoryId } from './categories';
 
-export type { CategoryId } from '../../shared/categories';
+export type { CategoryId } from './categories';
 
 export const INTERVAL_LABELS = {
   monthly: 'Monatlich',

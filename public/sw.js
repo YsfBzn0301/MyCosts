@@ -1,13 +1,18 @@
 /* Service Worker – Offline-Fähigkeit & schnelles Laden.
  *
- * Strategie:
- *  - App-Shell (HTML, Manifest, Icons) wird beim Install vorgeladen.
+ * Alle Pfade sind relativ zum Scope des Service Workers. So funktioniert die App
+ * sowohl unter "/" als auch unter einem Unterpfad wie GitHub Pages (/MyCosts/).
+ *
+ *  - App-Shell wird beim Install vorgeladen.
  *  - Navigation: Network-first, Fallback auf die gecachte index.html (offline).
- *  - Statische Assets (gehashte Vite-Bundles): Cache-first, da unveränderlich.
- *  - /api/* wird NIE gecacht (KI-Antworten sind dynamisch und kosten Geld).
+ *  - Übrige GET-Requests (gehashte Bundles, Icons): Cache-first.
  */
-const CACHE = 'fixkosten-v1';
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/icon-512.png'];
+const CACHE = 'fixkosten-v2';
+const SCOPE = self.registration.scope;
+const SHELL = ['', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png'].map(
+  (path) => new URL(path, SCOPE).href,
+);
+const INDEX = new URL('index.html', SCOPE).href;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -30,10 +35,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
-
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/api/')) return;
+  if (url.origin !== self.location.origin || !url.href.startsWith(SCOPE)) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request));
@@ -46,10 +49,10 @@ async function networkFirst(request) {
   const cache = await caches.open(CACHE);
   try {
     const response = await fetch(request);
-    if (response.ok) cache.put('/index.html', response.clone());
+    if (response.ok) cache.put(INDEX, response.clone());
     return response;
   } catch {
-    return (await cache.match('/index.html')) || (await cache.match('/')) || Response.error();
+    return (await cache.match(INDEX)) || (await cache.match(SCOPE)) || Response.error();
   }
 }
 
