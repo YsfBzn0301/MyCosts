@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-slate-50);
+  }
+  dialog::backdrop {
+    background: rgb(15 23 42 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+}
