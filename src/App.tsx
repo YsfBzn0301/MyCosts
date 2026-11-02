@@ -56,11 +56,11 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   const [dialog, setDialog] = useState<{ cost: FixedCost | null } | null>(null);
   const [transfer, setTransfer] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [introGone, setIntroGone] = useState(() => introAlreadyShown());
-  const [revealed, setRevealed] = useState(() => introAlreadyShown());
+  // Phasen der Intro: 'logo' (nur Logo), 'zoom' (Inhalt durch die Aussparungen), 'done'.
+  const [introPhase, setIntroPhase] = useState<'logo' | 'zoom' | 'done'>(() => (introAlreadyShown() ? 'done' : 'logo'));
   const [dismissed, setDismissed] = useState(false);
-  const finishIntro = useCallback(() => setIntroGone(true), []);
-  const reveal = useCallback(() => setRevealed(true), []);
+  const finishIntro = useCallback(() => setIntroPhase('done'), []);
+  const reveal = useCallback(() => setIntroPhase((p) => (p === 'done' ? p : 'zoom')), []);
 
   // Uhr für die Erinnerung: jede Minute prüfen, ob sie fällig ist.
   const [clock, setClock] = useState(() => new Date());
@@ -200,8 +200,10 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
 
   return (
     <>
-    {!introGone && <Intro onReveal={reveal} onDone={finishIntro} />}
-    <div className={`mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 transition-opacity duration-500 sm:px-6 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
+    {introPhase !== 'done' && <Intro onReveal={reveal} onDone={finishIntro} />}
+    <div className={`mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 sm:px-6 ${
+      introPhase === 'logo' ? 'opacity-0' : introPhase === 'zoom' ? 'intro-holes intro-holes-zoom' : ''
+    }`}>
 
       <header className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
