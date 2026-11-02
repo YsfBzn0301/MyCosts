@@ -1,49 +1,91 @@
 @import "tailwindcss";
 
+/* Farben und Schatten als Tokens. Dunkel wird über die Klasse html.dark umgeschaltet. */
 @theme {
+  --color-canvas: #f6f3ee;
+  --color-surface: #fffdf9;
+  --color-ink: #23211d;
+  --color-muted: #77715f;
+  --color-line: #e7e1d4;
+  --color-accent: #2f6a58;
+  --color-accent-soft: #dcebe4;
+  --color-warm: #a8702a;
+  --color-warm-soft: #f5e9d3;
+  --color-danger: #a94a37;
+  --color-danger-soft: #f5dfd8;
+
+  --shadow-soft: 0 1px 2px rgb(35 33 29 / 0.05), 0 12px 32px -14px rgb(35 33 29 / 0.22);
+  --shadow-lift: 0 2px 4px rgb(35 33 29 / 0.06), 0 22px 44px -18px rgb(35 33 29 / 0.3);
+
+  --radius-card: 28px;
+
   --animate-fade-up: fade-up 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-pop: pop-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-sheet: sheet-up 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+html.dark {
+  --color-canvas: #151417;
+  --color-surface: #1e1d21;
+  --color-ink: #efebe4;
+  --color-muted: #a09a8c;
+  --color-line: #34323a;
+  --color-accent: #7fc4a8;
+  --color-accent-soft: #1f3a31;
+  --color-warm: #e0a85a;
+  --color-warm-soft: #3a2d1a;
+  --color-danger: #e6907b;
+  --color-danger-soft: #3b221d;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -14px rgb(0 0 0 / 0.6);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 22px 44px -18px rgb(0 0 0 / 0.7);
+}
+
+/* Außerhalb der Layer, damit Farben der Tokens immer gelten. */
+html,
+body {
+  color: var(--color-ink);
+}
+body {
+  min-height: 100dvh;
+  background-color: var(--color-canvas);
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
-
 @keyframes pop-in {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: none; }
 }
-
+@keyframes sheet-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
 @keyframes bar-grow {
   from { transform: scaleY(0); }
   to { transform: scaleY(1); }
 }
-
 @keyframes coin-drop {
   from { opacity: 0; transform: translateY(-70px); }
   60% { opacity: 1; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
-
 @keyframes dialog-in {
   from { opacity: 0; transform: translateY(14px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
-
 @keyframes backdrop-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* Logo-Animation (Startscreen) */
 .logo-bar {
   transform-box: fill-box;
   transform-origin: 50% 100%;
   animation: bar-grow 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: var(--d, 0ms);
 }
-
 .logo-coin {
   transform-box: fill-box;
   transform-origin: center;
@@ -54,32 +96,26 @@
   html {
     -webkit-tap-highlight-color: transparent;
   }
-  body {
-    min-height: 100dvh;
-    background-color: var(--color-slate-50);
-  }
   dialog::backdrop {
-    background: rgb(15 23 42 / 0.45);
-    backdrop-filter: blur(2px);
+    background: rgb(20 19 23 / 0.4);
+    backdrop-filter: blur(3px);
     animation: backdrop-in 220ms ease-out both;
   }
   dialog[open] {
     animation: dialog-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
-  /* Buttons und Eingabefelder bekommen weiche Zustandswechsel. */
   button:not(:disabled) {
-    transition: transform 150ms ease-out, background-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+    transition: transform 160ms ease-out, background-color 200ms ease, color 200ms ease, box-shadow 220ms ease;
   }
   button:not(:disabled):active {
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
   input,
   select {
-    transition: border-color 200ms ease, box-shadow 200ms ease;
+    transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
   }
 }
 
-/* Barrierefreiheit: Bewegung reduzieren, wenn der Nutzer das im System gewählt hat. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

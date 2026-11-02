@@ -59,3 +59,43 @@ export interface CashSettings {
 }
 
 export const DEFAULT_SETTINGS: CashSettings = { balanceCents: 0, monthlySpendCents: 0, safetyCents: 0 };
+
+/** Sparkonto oder Depot mit manuell gepflegtem Stand. */
+export interface SavingsAccount {
+  id: string;
+  name: string;
+  balanceCents: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type MetalCode = 'XAU' | 'XAG';
+export type CurrencyCode = 'USD' | 'GBP' | 'CHF' | 'TRY' | 'JPY' | 'PLN';
+
+/** Physischer Bestand. Metalle in Gramm oder Feinunzen, Währungen in Einheiten. */
+export type Asset =
+  | { id: string; kind: 'metal'; code: MetalCode; quantity: number; unit: 'g' | 'oz'; createdAt: string }
+  | { id: string; kind: 'currency'; code: CurrencyCode; quantity: number; createdAt: string };
+
+/** Manuelle Ein- oder Auszahlung. amountCents ist positiv bei Eingang, negativ bei Ausgang. */
+export interface Transaction {
+  id: string;
+  date: string;
+  accountId: string;
+  amountCents: number;
+  note: string;
+}
+
+/** Tageswert des Gesamtvermögens für den Verlauf. date im Format YYYY-MM-DD. */
+export interface NetWorthPoint {
+  date: string;
+  cents: number;
+}
+
+export type Theme = 'light' | 'dark' | 'system';
+export type Lang = 'de' | 'en' | 'tr';
+
+export interface Prefs {
+  lang: Lang;
+  theme: Theme;
+}

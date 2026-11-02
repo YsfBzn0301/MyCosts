@@ -1,6 +1,10 @@
-// Gemeinsamer Stil für Eingabefelder im Kontoauszug-Layout: nur Unterlinie, keine Box.
+// Gemeinsame Stile: weiche Felder mit Füllung, große Radien, klare Fokusringe.
 export const fieldClass =
-  'mt-1 w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-lg tabular-nums text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-700 aria-[invalid=true]:border-rose-600';
+  'mt-1.5 w-full rounded-2xl bg-canvas px-4 py-3 text-base tabular-nums text-ink outline-none ring-1 ring-line placeholder:text-muted/60 focus:bg-surface focus:ring-2 focus:ring-accent aria-[invalid=true]:ring-danger';
 
 export const primaryButton =
-  'rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-40';
+  'rounded-2xl bg-accent px-5 py-2.5 text-sm font-semibold text-surface shadow-soft hover:brightness-110 disabled:opacity-40';
+
+export const ghostButton = 'rounded-xl px-3 py-2 text-sm font-medium text-accent hover:bg-accent-soft';
+
+export const card = 'rounded-[var(--radius-card)] bg-surface p-6 shadow-soft ring-1 ring-line/60';

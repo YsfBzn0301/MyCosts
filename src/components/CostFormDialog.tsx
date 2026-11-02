@@ -1,13 +1,10 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { CATEGORIES } from '../domain/categories';
 import { INTERVAL_LABELS, type FixedCost, type FixedCostValues, type Interval } from '../domain/types';
-import {
-  draftFromCost,
-  emptyDraft,
-  validateDraft,
-  type FieldErrors,
-  type FormDraft,
-} from '../agents/uiDataWorker';
+import { draftFromCost, emptyDraft, validateDraft, type FieldErrors, type FormDraft } from '../agents/uiDataWorker';
+import { getLocale } from '../domain/locale';
+import { useI18n } from '../i18n';
+import { fieldClass, primaryButton, ghostButton } from './fieldStyles';
 
 interface Props {
   cost: FixedCost | null;
@@ -15,22 +12,19 @@ interface Props {
   onSave: (values: FixedCostValues) => void;
 }
 
-const inputClass =
-  'mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 aria-[invalid=true]:border-rose-500';
-
-/** Label und Control sind per id verknüpft (nicht umschlossen), damit der Accessible Name nur das Label ist. */
 function Field({ label, error, children }: { label: string; error?: string; children: (id: string) => ReactNode }) {
   const id = useId();
   return (
-    <div className="block text-sm font-medium text-slate-700">
+    <div className="block text-sm text-muted">
       <label htmlFor={id}>{label}</label>
       {children(id)}
-      {error && <span className="mt-1 block text-xs text-rose-600">{error}</span>}
+      {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
     </div>
   );
 }
 
 export function CostFormDialog({ cost, onClose, onSave }: Props) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
   const [draft, setDraft] = useState<FormDraft>(() => (cost ? draftFromCost(cost) : emptyDraft()));
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -39,18 +33,17 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
     ref.current?.showModal();
   }, []);
 
-  const update = <K extends keyof FormDraft>(key: K, value: FormDraft[K]) =>
-    setDraft((d) => ({ ...d, [key]: value }));
+  const update = <K extends keyof FormDraft>(key: K, value: FormDraft[K]) => setDraft((d) => ({ ...d, [key]: value }));
+  const monthName = (i: number) => new Date(2000, i, 1).toLocaleString(getLocale(), { month: 'long' });
 
   function submit(e: FormEvent) {
     e.preventDefault();
     const result = validateDraft(draft);
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
+    if (!result.ok) return setErrors(result.errors);
     onSave(result.values);
   }
+
+  const err = (key: keyof FieldErrors) => (errors[key] ? t(errors[key] as string) : undefined);
 
   return (
     <dialog
@@ -59,48 +52,27 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
         e.preventDefault();
         onClose();
       }}
-      className="m-auto w-[min(92vw,28rem)] rounded-2xl bg-white p-0 shadow-xl"
+      className="m-auto w-[min(92vw,30rem)] rounded-[28px] bg-surface p-0 text-ink shadow-lift"
     >
-      <form onSubmit={submit} noValidate className="space-y-4 p-5">
-        <h2 className="text-lg font-semibold text-slate-900">
-          {cost ? 'Fixkosten bearbeiten' : 'Neuer Fixkosten-Posten'}
-        </h2>
+      <form onSubmit={submit} noValidate className="space-y-5 p-6">
+        <h2 className="text-lg font-semibold">{cost ? t('form.editCost') : t('form.newCost')}</h2>
 
-        <Field label="Name" error={errors.name}>
+        <Field label={t('form.name')} error={err('name')}>
           {(id) => (
-            <input
-              id={id}
-              className={inputClass}
-              value={draft.name}
-              maxLength={60}
-              autoFocus
-              aria-invalid={Boolean(errors.name)}
-              placeholder="z. B. Netflix, Kaltmiete"
-              onChange={(e) => update('name', e.target.value)}
-            />
+            <input id={id} className={fieldClass} value={draft.name} maxLength={60} autoFocus aria-invalid={Boolean(errors.name)} placeholder={t('form.namePh')} onChange={(e) => update('name', e.target.value)} />
           )}
         </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Betrag (€)" error={errors.amount}>
-            {(id) => (
-              <input
-                id={id}
-                className={inputClass}
-                inputMode="decimal"
-                value={draft.amount}
-                aria-invalid={Boolean(errors.amount)}
-                placeholder="12,99"
-                onChange={(e) => update('amount', e.target.value)}
-              />
-            )}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t('form.amount')} error={err('amount')}>
+            {(id) => <input id={id} className={fieldClass} inputMode="decimal" value={draft.amount} aria-invalid={Boolean(errors.amount)} placeholder="12,99" onChange={(e) => update('amount', e.target.value)} />}
           </Field>
-          <Field label="Intervall">
+          <Field label={t('form.interval')}>
             {(id) => (
-              <select id={id} className={inputClass} value={draft.interval} onChange={(e) => update('interval', e.target.value as Interval)}>
+              <select id={id} className={fieldClass} value={draft.interval} onChange={(e) => update('interval', e.target.value as Interval)}>
                 {(Object.keys(INTERVAL_LABELS) as Interval[]).map((i) => (
                   <option key={i} value={i}>
-                    {INTERVAL_LABELS[i]}
+                    {t(`interval.${i}`)}
                   </option>
                 ))}
               </select>
@@ -108,45 +80,30 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
           </Field>
         </div>
 
-        <Field label="Kategorie" error={errors.category}>
+        <Field label={t('form.category')} error={err('category')}>
           {(id) => (
-              <select
-                id={id}
-                className={inputClass}
-                value={draft.category}
-                aria-invalid={Boolean(errors.category)}
-                onChange={(e) => update('category', e.target.value as FormDraft['category'])}
-              >
-                <option value="">Bitte wählen</option>
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+            <select id={id} className={fieldClass} value={draft.category} aria-invalid={Boolean(errors.category)} onChange={(e) => update('category', e.target.value as FormDraft['category'])}>
+              <option value="">{t('form.pick')}</option>
+              {CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {t(`cat.${c.id}`)}
+                </option>
+              ))}
+            </select>
           )}
         </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Fällig am (Tag)" error={errors.dueDay}>
-            {(id) => (
-              <input
-                id={id}
-                className={inputClass}
-                inputMode="numeric"
-                value={draft.dueDay}
-                aria-invalid={Boolean(errors.dueDay)}
-                onChange={(e) => update('dueDay', e.target.value)}
-              />
-            )}
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t('form.dueDay')} error={err('dueDay')}>
+            {(id) => <input id={id} className={fieldClass} inputMode="numeric" value={draft.dueDay} aria-invalid={Boolean(errors.dueDay)} onChange={(e) => update('dueDay', e.target.value)} />}
           </Field>
           {draft.interval !== 'monthly' && (
-            <Field label="Fälligkeitsmonat" error={errors.dueMonth}>
+            <Field label={t('form.dueMonth')} error={err('dueMonth')}>
               {(id) => (
-                <select id={id} className={inputClass} value={draft.dueMonth} onChange={(e) => update('dueMonth', e.target.value)}>
+                <select id={id} className={fieldClass} value={draft.dueMonth} onChange={(e) => update('dueMonth', e.target.value)}>
                   {Array.from({ length: 12 }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
-                      {new Date(2000, i, 1).toLocaleString('de-DE', { month: 'long' })}
+                      {monthName(i)}
                     </option>
                   ))}
                 </select>
@@ -156,11 +113,11 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
-            Abbrechen
+          <button type="button" onClick={onClose} className={ghostButton}>
+            {t('common.cancel')}
           </button>
-          <button type="submit" className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
-            Speichern
+          <button type="submit" className={primaryButton}>
+            {t('common.save')}
           </button>
         </div>
       </form>

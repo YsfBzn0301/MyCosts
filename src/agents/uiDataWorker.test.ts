@@ -86,8 +86,10 @@ describe('Backup', () => {
   it('Export → Import ist verlustfrei', () => {
     const costs = addCost([], { name: 'A', amountCents: 100, category: 'other', interval: 'monthly', dueDay: 2 }, new Date());
     const settings = { balanceCents: -500, monthlySpendCents: 1000, safetyCents: 200 };
-    const back = parseBackup(exportBackup({ costs, incomes: [], settings }));
-    expect(back).toEqual({ costs, incomes: [], settings });
+    const savings = [{ id: 's', name: 'Notgroschen', balanceCents: 500, createdAt: '', updatedAt: '' }];
+    const history = [{ date: '2026-11-02', cents: 42 }];
+    const back = parseBackup(exportBackup({ costs, incomes: [], settings, savings, assets: [], transactions: [], history }));
+    expect(back).toEqual({ costs, incomes: [], settings, savings, assets: [], transactions: [], history });
   });
 
   it('akzeptiert alte Backups (nur Fixkosten)', () => {
@@ -95,6 +97,7 @@ describe('Backup', () => {
     const back = parseBackup(JSON.stringify({ app: 'fixkosten', version: 1, costs }));
     expect(back?.costs).toEqual(costs);
     expect(back?.incomes).toEqual([]);
+    expect(back?.savings).toEqual([]);
   });
 
   it('lehnt kaputte Dateien ab', () => {

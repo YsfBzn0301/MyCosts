@@ -1,22 +1,10 @@
-// Gemeinsame Kategorie-Definition (Client + Server). Reine Daten, keine Abhängigkeiten.
-export const CATEGORIES = [
-  { id: 'housing', label: 'Wohnen' },
-  { id: 'insurance', label: 'Versicherungen' },
-  { id: 'subscriptions', label: 'Abos & Streaming' },
-  { id: 'telecom', label: 'Telefon & Internet' },
-  { id: 'mobility', label: 'Mobilität' },
-  { id: 'finance', label: 'Finanzen & Kredite' },
-  { id: 'other', label: 'Sonstiges' },
-] as const;
+// Kategorie-IDs. Anzeigetexte kommen aus den Übersetzungen (cat.<id>).
+export const CATEGORY_IDS = ['housing', 'insurance', 'subscriptions', 'telecom', 'mobility', 'finance', 'other'] as const;
 
-export type CategoryId = (typeof CATEGORIES)[number]['id'];
+export type CategoryId = (typeof CATEGORY_IDS)[number];
 
-export const CATEGORY_IDS = CATEGORIES.map((c) => c.id) as readonly CategoryId[];
+export const CATEGORIES: ReadonlyArray<{ id: CategoryId }> = CATEGORY_IDS.map((id) => ({ id }));
 
 export function isCategoryId(value: unknown): value is CategoryId {
   return typeof value === 'string' && (CATEGORY_IDS as readonly string[]).includes(value);
-}
-
-export function categoryLabel(id: CategoryId): string {
-  return CATEGORIES.find((c) => c.id === id)?.label ?? 'Sonstiges';
 }

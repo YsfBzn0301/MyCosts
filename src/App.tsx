@@ -1,65 +1,115 @@
-import { useCallback, useMemo, useState } from 'react';
-import type { FixedCost, FixedCostValues } from './domain/types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { FixedCost, FixedCostValues, Transaction, Theme } from './domain/types';
 import { nextDueDate } from './domain/schedule';
+import { computeNetWorth } from './domain/portfolio';
+import { monthOverview } from './domain/cashflow';
 import { routeBudget } from './agents/budgetRouter';
 import { predictWarnings } from './agents/cashflowPredictor';
 import { computeTotals, exportBackup, parseBackup, totalsByCategory } from './agents/uiDataWorker';
-import { monthOverview } from './domain/cashflow';
+import { CHECKING_ID, type NewAsset } from './agents/portfolioWorker';
 import { useCosts } from './hooks/useCosts';
 import { useFinance } from './hooks/useFinance';
+import { usePortfolio } from './hooks/usePortfolio';
+import { useFx } from './hooks/useFx';
+import { usePrefs } from './hooks/usePrefs';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
-import { CashflowPanel } from './components/CashflowPanel';
-import { SettingsPanel } from './components/SettingsPanel';
-import { IncomePanel } from './components/IncomePanel';
-import { CostList, type ListItem } from './components/CostList';
-import { CostFormDialog } from './components/CostFormDialog';
-import { Splash } from './components/Splash';
+import { I18nProvider, useI18n } from './i18n';
 import { Logo } from './components/Logo';
+import { Splash } from './components/Splash';
+import { BottomNav, type Tab } from './components/BottomNav';
+import { CostFormDialog } from './components/CostFormDialog';
+import { TransferDialog } from './components/TransferDialog';
+import { DashboardPage } from './pages/DashboardPage';
+import { FixedPage } from './pages/FixedPage';
+import { AssetsPage } from './pages/AssetsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { primaryButton } from './components/fieldStyles';
+import type { ListItem } from './components/CostList';
 
 export default function App() {
+  const prefs = usePrefs();
+  return (
+    <I18nProvider lang={prefs.prefs.lang} setLang={prefs.setLang}>
+      <Shell prefs={prefs} />
+    </I18nProvider>
+  );
+}
+
+function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
+  const { t } = useI18n();
   const costsState = useCosts();
   const finance = useFinance();
-  const { costs, upsert, remove } = costsState;
-  const { incomes, settings } = finance;
+  const portfolio = usePortfolio();
+  const fx = useFx(useMemo(() => portfolio.assets.map((a) => a.code), [portfolio.assets]));
   const online = useOnlineStatus();
   const { canInstall, install } = useInstallPrompt();
+
+  const [tab, setTab] = useState<Tab>('dashboard');
   const [dialog, setDialog] = useState<{ cost: FixedCost | null } | null>(null);
+  const [transfer, setTransfer] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [splashDone, setSplashDone] = useState(false);
   const finishSplash = useCallback(() => setSplashDone(true), []);
 
+  const { costs, upsert, remove } = costsState;
+  const { incomes, settings } = finance;
   const today = useMemo(() => new Date(), [costs, incomes, settings]);
 
   const result = useMemo(() => routeBudget({ today, costs, incomes, settings }), [today, costs, incomes, settings]);
   const warnings = useMemo(() => predictWarnings(result), [result]);
-  const monthEntries = useMemo(
-    () => monthOverview(costs, today, result.windowEnd),
-    [costs, today, result.windowEnd],
-  );
-
+  const monthEntries = useMemo(() => monthOverview(costs, today, result.windowEnd), [costs, today, result.windowEnd]);
   const items: ListItem[] = useMemo(
-    () =>
-      costs
-        .map((cost) => ({ cost, next: nextDueDate(cost, today) }))
-        .sort((a, b) => a.next.getTime() - b.next.getTime()),
+    () => costs.map((cost) => ({ cost, next: nextDueDate(cost, today) })).sort((a, b) => a.next.getTime() - b.next.getTime()),
     [costs, today],
   );
   const totals = useMemo(() => computeTotals(costs), [costs]);
   const groups = useMemo(() => totalsByCategory(costs), [costs]);
 
-  const handleSave = (values: FixedCostValues) => {
+  const nw = useMemo(
+    () => computeNetWorth({ checkingCents: settings.balanceCents, savings: portfolio.savings, assets: portfolio.assets, rates: fx.rates }),
+    [settings.balanceCents, portfolio.savings, portfolio.assets, fx.rates],
+  );
+  const { recordNetWorth } = portfolio;
+  useEffect(() => {
+    if (nw.assetsKnown) recordNetWorth(nw.totalCents);
+  }, [nw.totalCents, nw.assetsKnown, recordNetWorth]);
+
+  const recordEntry = (tx: Transaction) => {
+    const r = portfolio.commitTransactions([tx], settings.balanceCents);
+    finance.setSettings({ ...settings, balanceCents: r.checkingCents });
+    setNotice(t('dash.entryDone'));
+    setTimeout(() => setNotice(null), 2000);
+  };
+
+  const confirmTransfer = (savingsId: string) => {
+    const amount = result.safeSavingsCents;
+    const target = portfolio.savings.find((s) => s.id === savingsId);
+    if (!target || amount <= 0) return setTransfer(false);
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10);
+    const out: Transaction = { id: crypto.randomUUID(), date, accountId: CHECKING_ID, amountCents: -amount, note: target.name };
+    const inn: Transaction = { id: crypto.randomUUID(), date, accountId: savingsId, amountCents: amount, note: t('fixed.transfer') };
+    const r = portfolio.commitTransactions([out, inn], settings.balanceCents);
+    finance.setSettings({ ...settings, balanceCents: r.checkingCents });
+    setTransfer(false);
+    setNotice(t('fixed.transferDone', { amount: (amount / 100).toFixed(2).replace('.', ','), name: target.name }));
+    setTimeout(() => setNotice(null), 2600);
+  };
+
+  const handleSaveCost = (values: FixedCostValues) => {
     upsert(dialog?.cost?.id ?? null, values);
     setDialog(null);
   };
-
-  const handleDelete = (cost: FixedCost) => {
-    if (window.confirm(`„${cost.name}“ wirklich löschen?`)) remove(cost.id);
+  const handleDeleteCost = (cost: FixedCost) => {
+    if (window.confirm(t('fixed.deleteConfirm', { name: cost.name }))) remove(cost.id);
   };
 
   const handleExport = () => {
-    const blob = new Blob([exportBackup({ costs, incomes, settings })], { type: 'application/json' });
+    const blob = new Blob(
+      [exportBackup({ costs, incomes, settings, savings: portfolio.savings, assets: portfolio.assets, transactions: portfolio.transactions, history: portfolio.history })],
+      { type: 'application/json' },
+    );
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -70,94 +120,117 @@ export default function App() {
 
   const handleImport = async (file: File) => {
     const backup = parseBackup(await file.text());
-    if (!backup) {
-      setNotice('Die Datei konnte nicht importiert werden.');
-      return;
-    }
-    if (
-      window.confirm(
-        `${backup.costs.length} Fixkosten und ${backup.incomes.length} Einnahmen importieren? Aktuelle Daten werden ersetzt.`,
-      )
-    ) {
-      costsState.replaceAll(backup.costs);
-      finance.replaceAll(backup.incomes, backup.settings);
-      setNotice('Import abgeschlossen.');
-    }
+    if (!backup) return setNotice(t('err.importFailed'));
+    if (!window.confirm(t('fixed.importConfirm', { costs: backup.costs.length, incomes: backup.incomes.length }))) return;
+    costsState.replaceAll(backup.costs);
+    finance.replaceAll(backup.incomes, backup.settings);
+    portfolio.replaceAll(backup.savings, backup.assets, backup.transactions, backup.history);
+    setNotice(t('err.importDone'));
   };
 
+  const storageFailed = costsState.saveFailed || finance.saveFailed;
+
   return (
-    <div className="mx-auto min-h-dvh max-w-2xl px-5 pb-20 pt-8 sm:px-6">
+    <div className="mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 sm:px-6">
       {!splashDone && <Splash onDone={finishSplash} />}
 
-      <header className="flex flex-wrap items-center justify-between gap-4">
+      <header className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Logo className="h-9 w-9 shrink-0" />
+          <Logo className="h-10 w-10 shrink-0" />
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900">Fixkosten & Sparen</h1>
-            <p className="text-sm text-slate-500">Was bleibt nach Gehalt und Fixkosten?</p>
+            <h1 className="text-lg font-semibold tracking-tight">{t('app.title')}</h1>
+            <p className="text-xs text-muted">{t('app.subtitle')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {canInstall && (
-            <button onClick={install} className="text-sm text-slate-600 hover:text-slate-900">
-              App installieren
-            </button>
-          )}
+        {tab === 'fixed' && (
           <button onClick={() => setDialog({ cost: null })} className={primaryButton}>
-            + Fixkosten
+            {t('common.add')}
           </button>
-        </div>
+        )}
+        {canInstall && tab === 'settings' && (
+          <button onClick={install} className="text-sm font-medium text-accent">
+            {t('app.install')}
+          </button>
+        )}
       </header>
 
       <div className="mt-4 space-y-2 text-sm">
-        {!online && <p role="status" className="text-amber-700">Offline. Deine Daten sind weiterhin verfügbar.</p>}
-        {(costsState.saveFailed || finance.saveFailed) && (
-          <p role="alert" className="text-rose-700">
-            Speicher blockiert. Änderungen werden nicht dauerhaft gesichert. Bitte exportiere deine Daten.
-          </p>
-        )}
-        {notice && <p role="status" className="text-emerald-700">{notice}</p>}
+        {!online && <p role="status" className="text-warm">{t('app.offline')}</p>}
+        {storageFailed && <p role="alert" className="text-danger">{t('app.storageBlocked')}</p>}
+        {notice && <p role="status" className="animate-pop rounded-2xl bg-accent-soft px-4 py-2 text-accent">{notice}</p>}
       </div>
 
-      <main className="mt-14 space-y-20">
-        <CashflowPanel result={result} warnings={warnings} monthEntries={monthEntries} />
-        <SettingsPanel settings={settings} onSave={finance.setSettings} />
-        <IncomePanel incomes={incomes} onAdd={finance.addIncomeItem} onRemove={finance.removeIncomeItem} />
-
-        <section aria-label="Fixkosten" className="space-y-6">
-          <h2 className="text-lg font-semibold text-slate-900">Fixkosten</h2>
-          <CostList
+      <main key={tab} className="mt-8 animate-fade-up">
+        {tab === 'dashboard' && (
+          <DashboardPage
+            nw={nw}
+            savings={portfolio.savings}
+            assets={portfolio.assets}
+            transactions={portfolio.transactions}
+            history={portfolio.history}
+            onRecord={recordEntry}
+            onAddSavings={portfolio.addSavingsAccount}
+            onUpdateSavings={portfolio.updateSavingsBalance}
+          />
+        )}
+        {tab === 'fixed' && (
+          <FixedPage
+            result={result}
+            warnings={warnings}
+            monthEntries={monthEntries}
+            incomes={incomes}
+            settings={settings}
             items={items}
             totals={totals}
             groups={groups}
-            onCreate={() => setDialog({ cost: null })}
-            onEdit={(cost) => setDialog({ cost })}
-            onDelete={handleDelete}
+            hasSavings={portfolio.savings.length > 0}
+            onTransfer={() => setTransfer(true)}
+            onAddIncome={finance.addIncomeItem}
+            onRemoveIncome={finance.removeIncomeItem}
+            onSaveSettings={finance.setSettings}
+            onCreateCost={() => setDialog({ cost: null })}
+            onEditCost={(cost) => setDialog({ cost })}
+            onDeleteCost={handleDeleteCost}
           />
-        </section>
-
-        <section aria-label="Daten" className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-200 pt-6 text-sm">
-          <span className="text-slate-500">Nur auf diesem Gerät gespeichert.</span>
-          <button onClick={handleExport} className="text-emerald-700 hover:text-emerald-800">
-            Exportieren
-          </button>
-          <label className="cursor-pointer text-emerald-700 hover:text-emerald-800">
-            Importieren
-            <input
-              type="file"
-              accept="application/json"
-              className="sr-only"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleImport(file);
-                e.target.value = '';
-              }}
-            />
-          </label>
-        </section>
+        )}
+        {tab === 'assets' && (
+          <AssetsPage
+            assets={portfolio.assets}
+            rates={fx.rates}
+            apiKey={fx.apiKey}
+            fetchedAt={fx.fetchedAt}
+            loading={fx.loading}
+            error={fx.error}
+            fromCache={fx.fromCache}
+            onRefresh={() => void fx.refresh(true)}
+            onAdd={(v: NewAsset) => portfolio.addAssetItem(v)}
+            onRemove={(id: string) => portfolio.removeAssetItem(id)}
+            onGoSettings={() => setTab('settings')}
+          />
+        )}
+        {tab === 'settings' && (
+          <SettingsPage
+            lang={prefs.prefs.lang}
+            onLang={prefs.setLang}
+            theme={prefs.prefs.theme}
+            onTheme={(th: Theme) => prefs.setTheme(th)}
+            apiKey={fx.apiKey}
+            onSaveKey={fx.setApiKey}
+            onRemoveKey={fx.clearApiKey}
+            onExport={handleExport}
+            onImport={handleImport}
+            notice={notice}
+          />
+        )}
       </main>
 
-      {dialog && <CostFormDialog cost={dialog.cost} onClose={() => setDialog(null)} onSave={handleSave} />}
+      <BottomNav tab={tab} onChange={setTab} />
+
+      {dialog && <CostFormDialog cost={dialog.cost} onClose={() => setDialog(null)} onSave={handleSaveCost} />}
+      {transfer && (
+        <TransferDialog amountCents={result.safeSavingsCents} savings={portfolio.savings} onClose={() => setTransfer(false)} onConfirm={confirmTransfer} />
+      )}
     </div>
   );
 }
+

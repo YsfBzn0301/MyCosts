@@ -1,9 +1,7 @@
 /**
  * Agent 1 – Budget & Cashflow Router.
- *
- * Verantwortlich für: Formularvalidierung, CRUD für Einnahmen und Einstellungen,
- * und das Routing (Puffer, sicherer Sparbetrag) über den Cashflow-Kern.
- * Rein deterministisch – kein LLM nötig, daher keine Token-Kosten.
+ * Formularvalidierung (Einnahmen, Einstellungen), CRUD für Einnahmen und das Routing
+ * über den Cashflow-Kern. Fehler sind Übersetzungsschlüssel. Kein Sprachmodell nötig.
  */
 import { parseAmountToCents } from '../domain/money';
 import { computeCashflow, type CashflowInput, type CashflowResult } from '../domain/cashflow';
@@ -27,17 +25,19 @@ export function emptyIncomeDraft(): IncomeDraft {
   return { name: '', amount: '', payDay: '1' };
 }
 
-export function validateIncome(draft: IncomeDraft): { ok: true; values: IncomeValues } | { ok: false; errors: IncomeErrors } {
+export function validateIncome(
+  draft: IncomeDraft,
+): { ok: true; values: IncomeValues } | { ok: false; errors: IncomeErrors } {
   const errors: IncomeErrors = {};
   const name = draft.name.trim();
-  if (!name) errors.name = 'Bitte einen Namen eingeben.';
-  else if (name.length > 60) errors.name = 'Maximal 60 Zeichen.';
+  if (!name) errors.name = 'err.required';
+  else if (name.length > 60) errors.name = 'err.nameLength';
 
   const amountCents = parseAmountToCents(draft.amount);
-  if (amountCents === null) errors.amount = 'Gültiger Betrag > 0, z. B. 2.850,00.';
+  if (amountCents === null) errors.amount = 'err.amount';
 
   const payDay = /^\d{1,2}$/.test(draft.payDay.trim()) ? Number(draft.payDay.trim()) : NaN;
-  if (!(payDay >= 1 && payDay <= 31)) errors.payDay = 'Tag zwischen 1 und 31.';
+  if (!(payDay >= 1 && payDay <= 31)) errors.payDay = 'err.payDay';
 
   if (Object.keys(errors).length || amountCents === null) return { ok: false, errors };
   return { ok: true, values: { name, amountCents, payDay } };
@@ -52,7 +52,7 @@ export function removeIncome(list: Income[], id: string): Income[] {
   return list.filter((i) => i.id !== id);
 }
 
-// ---------- Einstellungen (Girokonto & Verbrauch) ----------
+// ---------- Girokonto & Verbrauch ----------
 
 export interface SettingsDraft {
   balance: string;
@@ -72,13 +72,13 @@ export function validateSettings(
 ): { ok: true; values: CashSettings } | { ok: false; errors: SettingsErrors } {
   const errors: SettingsErrors = {};
   const balanceCents = parseAmountToCents(draft.balance, { allowZero: true, allowNegative: true });
-  if (balanceCents === null) errors.balance = 'Betrag eingeben, z. B. 1.234,56 (auch negativ möglich).';
+  if (balanceCents === null) errors.balance = 'err.balance';
 
   const monthlySpendCents = parseAmountToCents(draft.monthlySpend, { allowZero: true });
-  if (monthlySpendCents === null) errors.monthlySpend = 'Positiver Betrag oder 0.';
+  if (monthlySpendCents === null) errors.monthlySpend = 'err.amountZeroOk';
 
   const safetyCents = parseAmountToCents(draft.safety, { allowZero: true });
-  if (safetyCents === null) errors.safety = 'Positiver Betrag oder 0.';
+  if (safetyCents === null) errors.safety = 'err.amountZeroOk';
 
   if (Object.keys(errors).length || balanceCents === null || monthlySpendCents === null || safetyCents === null) {
     return { ok: false, errors };

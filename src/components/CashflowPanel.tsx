@@ -1,94 +1,110 @@
 import { formatEUR } from '../domain/money';
+import { formatDate } from '../domain/format';
 import type { CashflowResult, MonthEntry } from '../domain/cashflow';
 import type { PredictorWarning } from '../agents/cashflowPredictor';
-import { dateFormat } from './format';
 import { AnimatedEUR } from './AnimatedEUR';
+import { card } from './fieldStyles';
+import { useI18n } from '../i18n';
 
 interface Props {
   result: CashflowResult;
   warnings: PredictorWarning[];
   monthEntries: MonthEntry[];
+  canTransfer: boolean;
+  onTransfer: () => void;
 }
 
-const warnStyle: Record<PredictorWarning['severity'], string> = {
-  kritisch: 'border-rose-600 text-rose-800',
-  warnung: 'border-amber-500 text-amber-800',
-  info: 'border-slate-300 text-slate-600',
+const warnTone: Record<PredictorWarning['severity'], string> = {
+  kritisch: 'bg-danger-soft text-danger',
+  warnung: 'bg-warm-soft text-warm',
+  info: 'bg-canvas text-muted',
 };
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-slate-200 py-3 last:border-0">
-      <dt className="text-sm text-slate-500">{label}</dt>
-      <dd className="tabular-nums text-slate-900">{children}</dd>
+    <div className="flex items-baseline justify-between gap-4 py-3">
+      <dt className="text-sm text-muted">{label}</dt>
+      <dd className="tabular-nums">{children}</dd>
     </div>
   );
 }
 
-export function CashflowPanel({ result: r, warnings, monthEntries }: Props) {
+export function CashflowPanel({ result: r, warnings, monthEntries, canTransfer, onTransfer }: Props) {
+  const { t } = useI18n();
   const planned = r.plannedMonthlySavingCents;
 
   return (
-    <section aria-label="Cashflow" className="space-y-10">
-      <div>
-        <p className="text-sm text-slate-500">Sicher sparen heute</p>
-        <p className="mt-1 text-6xl font-semibold tracking-tight tabular-nums text-emerald-700 sm:text-7xl">
+    <section aria-label={t('fixed.cashflowTitle')} className="space-y-6">
+      <div className="rounded-[var(--radius-card)] bg-accent p-6 text-surface shadow-soft">
+        <p className="text-sm opacity-80">{t('fixed.cashflowTitle')}</p>
+        <p className="mt-1 text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">
           <AnimatedEUR cents={r.safeSavingsCents} />
         </p>
-        <p className="mt-3 max-w-prose text-slate-600">
+        <p className="mt-3 max-w-prose text-sm opacity-90">
           {r.nextIncome
-            ? `Ohne Überziehung bis zum Gehalt am ${dateFormat.format(r.nextIncome.date)}, in ${r.windowDays} Tagen.`
-            : 'Ohne hinterlegtes Gehalt betrachtet die Prognose die nächsten 30 Tage.'}
+            ? t('fixed.safeHint', { date: formatDate(r.nextIncome.date), days: r.windowDays })
+            : t('fixed.safeNoIncome')}
         </p>
+        {canTransfer && (
+          <button
+            onClick={onTransfer}
+            className="mt-5 rounded-2xl bg-surface px-5 py-2.5 text-sm font-semibold text-accent shadow-soft transition hover:brightness-95"
+          >
+            {t('fixed.transfer')}
+          </button>
+        )}
       </div>
 
-      <dl className="max-w-md">
-        <Row label="Restpuffer auf dem Girokonto">
+      <dl className={`${card} divide-y divide-line py-2`}>
+        <Row label={t('fixed.restBuffer')}>
           <AnimatedEUR cents={r.restBufferCents} />
         </Row>
-        <Row label="Fixkosten bis Gehalt">{formatEUR(r.fixedUntilIncomeCents)}</Row>
-        <Row label="Lebenshaltung bis Gehalt">{formatEUR(r.spendingUntilIncomeCents)}</Row>
-        <Row label="Sicherheitspuffer">{formatEUR(r.safetyCents)}</Row>
-        <Row label="Kontostand vor Gehalt">{formatEUR(r.endBalanceCents)}</Row>
-        <Row label="Planung pro Monat">
-          <span className={planned < 0 ? 'text-rose-700' : undefined}>
+        <Row label={t('fixed.fixedUntil')}>{formatEUR(r.fixedUntilIncomeCents)}</Row>
+        <Row label={t('fixed.spendUntil')}>{formatEUR(r.spendingUntilIncomeCents)}</Row>
+        <Row label={t('fixed.safetyRow')}>{formatEUR(r.safetyCents)}</Row>
+        <Row label={t('fixed.endBalance')}>{formatEUR(r.endBalanceCents)}</Row>
+        <Row label={t('fixed.plan')}>
+          <span className={planned < 0 ? 'text-danger' : undefined}>
             <AnimatedEUR cents={planned} />
           </span>
         </Row>
+        <p className="pb-3 pt-1 text-xs text-muted">
+          {t('fixed.planFormula', {
+            income: formatEUR(r.monthlyIncomeCents),
+            fixed: formatEUR(r.monthlyFixedCents),
+            spend: formatEUR(r.monthlySpendCents),
+          })}
+        </p>
       </dl>
-      <p className="-mt-6 text-xs text-slate-500">
-        Einnahmen {formatEUR(r.monthlyIncomeCents)} − Fixkosten {formatEUR(r.monthlyFixedCents)} − Lebenshaltung{' '}
-        {formatEUR(r.monthlySpendCents)}
-      </p>
 
       {warnings.length > 0 && (
-        <ul className="space-y-3" aria-label="Hinweise">
+        <ul className="space-y-2" aria-label={t('app.notes')}>
           {warnings.map((w, i) => (
             <li
               key={i}
               role={w.severity === 'kritisch' ? 'alert' : undefined}
-              className={`animate-pop border-l-2 pl-3 text-sm ${warnStyle[w.severity]}`}
+              className={`animate-pop rounded-2xl px-4 py-3 text-sm ${warnTone[w.severity]}`}
             >
-              {w.message}
+              {t(w.key, w.vars)}
             </li>
           ))}
         </ul>
       )}
 
-      <div>
-        <h2 className="text-sm text-slate-500">Abbuchungen diesen Monat</h2>
+      <div className={card}>
+        <h3 className="text-sm font-semibold">{t('fixed.monthTitle')}</h3>
         {monthEntries.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">Keine Fixkosten in diesem Monat.</p>
+          <p className="mt-3 text-sm text-muted">{t('fixed.monthEmpty')}</p>
         ) : (
-          <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-200 text-sm">
+          <ul className="mt-3 divide-y divide-line text-sm">
             {monthEntries.map((e, i) => (
               <li key={i} className="grid grid-cols-[5.5rem_1fr_auto] items-baseline gap-3 py-2.5">
-                <span className="tabular-nums text-slate-500">{dateFormat.format(e.date)}</span>
-                <span className="truncate text-slate-900">
+                <span className="tabular-nums text-muted">{formatDate(e.date)}</span>
+                <span className="truncate">
                   {e.name}
-                  {e.beforeIncome && <span className="ml-2 text-xs text-amber-700">vor Gehalt</span>}
+                  {e.beforeIncome && <span className="ml-2 rounded-full bg-warm-soft px-2 py-0.5 text-xs text-warm">{t('fixed.beforeIncome')}</span>}
                 </span>
-                <span className="tabular-nums text-slate-900">{formatEUR(e.amountCents)}</span>
+                <span className="tabular-nums">{formatEUR(e.amountCents)}</span>
               </li>
             ))}
           </ul>

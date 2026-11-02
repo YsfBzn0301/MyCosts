@@ -1,9 +1,9 @@
 import { PAYMENTS_PER_YEAR, type FixedCost } from './types';
 
-const eur = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+import { eurFormat } from './locale';
 
 export function formatEUR(cents: number): string {
-  return eur.format(cents / 100);
+  return eurFormat().format(cents / 100);
 }
 
 /**
