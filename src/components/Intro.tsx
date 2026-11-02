@@ -29,8 +29,9 @@ export function Intro({ onDone }: { onDone: () => void }) {
       onDone();
       return;
     }
-    const start = setTimeout(() => setZoom(true), 650);
-    const end = setTimeout(onDone, 1900);
+    // Erst die Kachel zeigen, dann langsam öffnen. Das Ende folgt der Zoom-Dauer.
+    const start = setTimeout(() => setZoom(true), 900);
+    const end = setTimeout(onDone, 3600);
     return () => {
       clearTimeout(start);
       clearTimeout(end);

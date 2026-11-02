@@ -199,7 +199,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   return (
     <>
     {!splashDone && <Intro onDone={finishSplash} />}
-    <div className={`mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 transition-opacity duration-700 sm:px-6 ${splashDone ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 sm:px-6">
 
       <header className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
