@@ -202,7 +202,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
     <>
     {introPhase !== 'done' && <Intro onReveal={reveal} onDone={finishIntro} />}
     <div className={`mx-auto min-h-dvh max-w-2xl px-5 pb-36 pt-8 sm:px-6 ${
-      introPhase === 'logo' ? 'opacity-0' : introPhase === 'zoom' ? 'intro-holes intro-holes-zoom' : ''
+      introPhase === 'logo' ? 'opacity-0' : ''
     }`}>
 
       <header className="flex items-center justify-between gap-4">

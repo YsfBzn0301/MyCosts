@@ -45,6 +45,8 @@ export function Intro({ onReveal, onDone }: { onReveal: () => void; onDone: () =
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+      {/* Hintergrund: deckt alles außerhalb des Logos ab, damit die Übersicht dort nie sichtbar ist. */}
+      <div className={`intro-backdrop absolute inset-0 bg-canvas ${zoom ? 'intro-backdrop-zoom' : ''}`} />
       <div
         className={`intro-mask absolute inset-0 bg-accent ${zoom ? 'intro-zoom' : 'intro-tile'}`}
         style={{ willChange: 'mask-size' }}

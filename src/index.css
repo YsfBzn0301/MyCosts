@@ -92,6 +92,10 @@ body {
   animation: coin-drop 800ms cubic-bezier(0.3, 0.9, 0.4, 1) 500ms both;
 }
 
+:root {
+  --intro-holes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M152,310 H152 A32,32 0 0 1 184,342 V368 A32,32 0 0 1 152,400 H152 A32,32 0 0 1 120,368 V342 A32,32 0 0 1 152,310 Z M242,250 H242 A32,32 0 0 1 274,282 V368 A32,32 0 0 1 242,400 H242 A32,32 0 0 1 210,368 V282 A32,32 0 0 1 242,250 Z M332,190 H332 A32,32 0 0 1 364,222 V368 A32,32 0 0 1 332,400 H332 A32,32 0 0 1 300,368 V222 A32,32 0 0 1 332,190 Z M330,128 A62,62 0 1 0 454,128 A62,62 0 1 0 330,128 Z'/%3E%3C/svg%3E");
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -151,17 +155,23 @@ body {
   to { -webkit-mask-size: 420vmax 420vmax; mask-size: 420vmax 420vmax; }
 }
 
-/* Inhalt nur durch die Aussparungen sichtbar. Außerhalb der Kachel bleibt er verborgen. */
-.intro-holes {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M152,310 H152 A32,32 0 0 1 184,342 V368 A32,32 0 0 1 152,400 H152 A32,32 0 0 1 120,368 V342 A32,32 0 0 1 152,310 Z M242,250 H242 A32,32 0 0 1 274,282 V368 A32,32 0 0 1 242,400 H242 A32,32 0 0 1 210,368 V282 A32,32 0 0 1 242,250 Z M332,190 H332 A32,32 0 0 1 364,222 V368 A32,32 0 0 1 332,400 H332 A32,32 0 0 1 300,368 V222 A32,32 0 0 1 332,190 Z M330,128 A62,62 0 1 0 454,128 A62,62 0 1 0 330,128 Z'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='black' d='M152,310 H152 A32,32 0 0 1 184,342 V368 A32,32 0 0 1 152,400 H152 A32,32 0 0 1 120,368 V342 A32,32 0 0 1 152,310 Z M242,250 H242 A32,32 0 0 1 274,282 V368 A32,32 0 0 1 242,400 H242 A32,32 0 0 1 210,368 V282 A32,32 0 0 1 242,250 Z M332,190 H332 A32,32 0 0 1 364,222 V368 A32,32 0 0 1 332,400 H332 A32,32 0 0 1 300,368 V222 A32,32 0 0 1 332,190 Z M330,128 A62,62 0 1 0 454,128 A62,62 0 1 0 330,128 Z'/%3E%3C/svg%3E");
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: 144px 144px;
-  mask-size: 144px 144px;
+/* Hintergrund über dem Inhalt: deckt alles ab, außer den Aussparungen des Logos (XOR der Masken). */
+.intro-backdrop {
+  -webkit-mask-image: linear-gradient(#000, #000), var(--intro-holes);
+  mask-image: linear-gradient(#000, #000), var(--intro-holes);
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-position: center, center;
+  mask-position: center, center;
+  -webkit-mask-size: 100% 100%, 144px 144px;
+  mask-size: 100% 100%, 144px 144px;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
-.intro-holes-zoom {
-  animation: intro-zoom 2600ms cubic-bezier(0.55, 0, 0.35, 1) forwards;
+.intro-backdrop-zoom {
+  animation: intro-backdrop-zoom 2600ms cubic-bezier(0.55, 0, 0.35, 1) forwards;
+}
+@keyframes intro-backdrop-zoom {
+  from { -webkit-mask-size: 100% 100%, 144px 144px; mask-size: 100% 100%, 144px 144px; }
+  to { -webkit-mask-size: 100% 100%, 420vmax 420vmax; mask-size: 100% 100%, 420vmax 420vmax; }
 }
