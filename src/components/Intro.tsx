@@ -15,7 +15,7 @@ export function introAlreadyShown(): boolean {
  * Intro: Die Logo-Kachel mit ausgestanzter Form wächst über den Bildschirm.
  * Durch die Aussparungen wird der Hauptbildschirm sichtbar. Rein CSS, ohne Textinhalt.
  */
-export function Intro({ onDone }: { onDone: () => void }) {
+export function Intro({ onReveal, onDone }: { onReveal: () => void; onDone: () => void }) {
   const [zoom, setZoom] = useState(false);
 
   useEffect(() => {
@@ -26,17 +26,22 @@ export function Intro({ onDone }: { onDone: () => void }) {
     }
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) {
+      onReveal();
       onDone();
       return;
     }
     // Nur das Logo zeigen, dann in das Logo hineinzoomen. Erst danach erscheint die Übersicht.
-    const start = setTimeout(() => setZoom(true), 1200);
+    // Die Übersicht wird ab Zoom-Start durch die Öffnungen sichtbar und ist am Ende vollständig da.
+    const start = setTimeout(() => {
+      setZoom(true);
+      onReveal();
+    }, 1200);
     const end = setTimeout(onDone, 3900);
     return () => {
       clearTimeout(start);
       clearTimeout(end);
     };
-  }, [onDone]);
+  }, [onDone, onReveal]);
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
