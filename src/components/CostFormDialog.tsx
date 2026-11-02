@@ -16,7 +16,7 @@ interface Props {
 }
 
 const inputClass =
-  'mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 aria-[invalid=true]:border-rose-500';
+  'mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 aria-[invalid=true]:border-rose-500';
 
 /** Label und Control sind per id verknüpft (nicht umschlossen), damit der Accessible Name nur das Label ist. */
 function Field({ label, error, children }: { label: string; error?: string; children: (id: string) => ReactNode }) {
@@ -159,7 +159,7 @@ export function CostFormDialog({ cost, onClose, onSave }: Props) {
           <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
             Abbrechen
           </button>
-          <button type="submit" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+          <button type="submit" className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
             Speichern
           </button>
         </div>

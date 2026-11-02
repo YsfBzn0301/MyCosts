@@ -31,7 +31,7 @@ export function Splash({ onDone }: Props) {
         Fixkosten & Sparen
       </p>
       <p className="mt-1 animate-fade-up text-sm text-slate-500" style={{ animationDelay: '850ms' }}>
-        Dein Sparbetrag, berechnet.
+        Was bleibt dir nach den Fixkosten?
       </p>
     </div>
   );

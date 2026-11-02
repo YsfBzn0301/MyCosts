@@ -25,7 +25,7 @@ export function CostList({ items, onEdit, onDelete, onCreate }: Props) {
         <p className="mt-1 text-sm text-slate-500">Miete, Versicherungen, Abos – alles, was jeden Monat abgebucht wird.</p>
         <button
           onClick={onCreate}
-          className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
         >
           Ersten Posten anlegen
         </button>
@@ -36,7 +36,7 @@ export function CostList({ items, onEdit, onDelete, onCreate }: Props) {
   return (
     <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
       {items.map(({ cost, next }) => (
-        <li key={cost.id} className="animate-fade-up flex items-center gap-3 p-4 transition-colors hover:bg-slate-50">
+        <li key={cost.id} className="flex items-center gap-3 p-4 transition-colors hover:bg-slate-50">
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium text-slate-900">{cost.name}</p>
             <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
@@ -56,7 +56,7 @@ export function CostList({ items, onEdit, onDelete, onCreate }: Props) {
           <div className="flex flex-col gap-1 sm:flex-row">
             <button
               onClick={() => onEdit(cost)}
-              className="rounded-lg px-2 py-1 text-sm text-indigo-600 hover:bg-indigo-50"
+              className="rounded-lg px-2 py-1 text-sm text-emerald-700 hover:bg-emerald-50"
               aria-label={`${cost.name} bearbeiten`}
             >
               Bearbeiten

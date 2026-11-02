@@ -10,7 +10,7 @@ interface Props {
 }
 
 const inputClass =
-  'mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 aria-[invalid=true]:border-rose-500';
+  'mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 aria-[invalid=true]:border-rose-500';
 
 export function IncomePanel({ incomes, onAdd, onRemove }: Props) {
   const [draft, setDraft] = useState<IncomeDraft>(emptyIncomeDraft());
@@ -33,7 +33,7 @@ export function IncomePanel({ incomes, onAdd, onRemove }: Props) {
       {incomes.length > 0 && (
         <ul className="mt-4 divide-y divide-slate-100">
           {incomes.map((i) => (
-            <li key={i.id} className="animate-fade-up flex items-center justify-between gap-3 py-3">
+            <li key={i.id} className="flex items-center justify-between gap-3 py-3">
               <div>
                 <p className="font-medium text-slate-900">{i.name}</p>
                 <p className="text-xs text-slate-500">jeden Monat am {i.payDay}.</p>
@@ -72,7 +72,7 @@ export function IncomePanel({ incomes, onAdd, onRemove }: Props) {
             onChange={(e) => setDraft({ ...draft, payDay: e.target.value })} />
           {errors.payDay && <span className="mt-1 block text-xs text-rose-600">{errors.payDay}</span>}
         </label>
-        <button type="submit" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+        <button type="submit" className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
           Hinzufügen
         </button>
       </form>

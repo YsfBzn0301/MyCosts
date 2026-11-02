@@ -17,7 +17,6 @@ import { CategoryBreakdown } from './components/CategoryBreakdown';
 import { CostList, type ListItem } from './components/CostList';
 import { CostFormDialog } from './components/CostFormDialog';
 import { Splash } from './components/Splash';
-import { Reveal } from './components/Reveal';
 import { Logo } from './components/Logo';
 
 export default function App() {
@@ -102,7 +101,7 @@ export default function App() {
               App installieren
             </button>
           )}
-          <button onClick={() => setDialog({ cost: null })} className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+          <button onClick={() => setDialog({ cost: null })} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-700">
             + Fixkosten
           </button>
         </div>
@@ -119,21 +118,13 @@ export default function App() {
             Speicher blockiert – Änderungen werden nicht dauerhaft gesichert. Bitte exportiere deine Daten.
           </p>
         )}
-        {notice && <p role="status" className="rounded-xl bg-indigo-50 px-4 py-2 text-sm text-indigo-800">{notice}</p>}
+        {notice && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-2 text-sm text-emerald-800">{notice}</p>}
       </div>
 
       <main className="mt-6 space-y-6">
-        <Reveal delay={0}>
           <CashflowPanel result={result} warnings={warnings} monthEntries={monthEntries} />
-        </Reveal>
-        <Reveal delay={90}>
           <SettingsPanel settings={settings} onSave={finance.setSettings} />
-        </Reveal>
-        <Reveal delay={180}>
           <IncomePanel incomes={incomes} onAdd={finance.addIncomeItem} onRemove={finance.removeIncomeItem} />
-        </Reveal>
-
-        <Reveal delay={270}>
         <section aria-label="Fixkosten" className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Fixkosten</h2>
           <SummaryCards totals={totals} next={next} />
@@ -145,13 +136,10 @@ export default function App() {
             onDelete={handleDelete}
           />
         </section>
-        </Reveal>
-
-        <Reveal delay={360}>
         <section aria-label="Daten" className="flex flex-wrap items-center gap-3 text-sm">
           <span className="text-slate-500">Daten liegen nur auf diesem Gerät.</span>
-          <button onClick={handleExport} className="rounded-lg px-3 py-1.5 text-indigo-600 hover:bg-indigo-50">Exportieren</button>
-          <label className="cursor-pointer rounded-lg px-3 py-1.5 text-indigo-600 hover:bg-indigo-50">
+          <button onClick={handleExport} className="rounded-lg px-3 py-1.5 text-emerald-700 hover:bg-emerald-50">Exportieren</button>
+          <label className="cursor-pointer rounded-lg px-3 py-1.5 text-emerald-700 hover:bg-emerald-50">
             Importieren
             <input
               type="file"
@@ -165,7 +153,6 @@ export default function App() {
             />
           </label>
         </section>
-        </Reveal>
       </main>
 
       {dialog && <CostFormDialog cost={dialog.cost} onClose={() => setDialog(null)} onSave={handleSave} />}

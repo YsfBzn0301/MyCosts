@@ -4,9 +4,9 @@ Ausführen:  python3 scripts/make-icons.py
 """
 from PIL import Image, ImageDraw
 
-INDIGO = (79, 70, 229)
-BAR_A = (165, 180, 252)
-BAR_B = (199, 210, 254)
+INK = (15, 23, 42)
+BAR_A = (110, 231, 183)
+BAR_B = (167, 243, 208)
 WHITE = (255, 255, 255)
 COIN = (251, 191, 36)
 COIN_RING = (253, 230, 138)
@@ -16,7 +16,7 @@ def draw(size: int, padding: float, radius_ratio: float, path: str) -> None:
     """padding: Rand als Anteil (Maskable-Icons ~0.12); radius_ratio 0 = eckig."""
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(canvas)
-    d.rounded_rectangle([0, 0, size - 1, size - 1], radius=int(112 * size / 512 * radius_ratio), fill=INDIGO)
+    d.rounded_rectangle([0, 0, size - 1, size - 1], radius=int(112 * size / 512 * radius_ratio), fill=INK)
 
     inset = padding * size
     k = (size - 2 * inset) / 512

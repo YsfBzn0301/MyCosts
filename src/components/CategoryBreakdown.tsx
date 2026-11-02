@@ -17,7 +17,7 @@ export function CategoryBreakdown({ groups }: { groups: CategoryTotal[] }) {
             </div>
             <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
               <div
-                className="h-full rounded-full bg-indigo-500 transition-all"
+                className="h-full rounded-full bg-slate-700 transition-all"
                 style={{ width: `${Math.max(2, g.share * 100)}%` }}
               />
             </div>

@@ -46,7 +46,7 @@ export function CashflowPanel({ result: r, warnings, monthEntries }: Props) {
             {r.nextIncome.name} am {dateFormat.format(r.nextIncome.date)} ({formatEUR(r.nextIncome.amountCents)}), in {daysLeft} Tagen.
           </p>
         ) : (
-          <p className="mt-1 text-sm text-slate-600">Keine Einnahme hinterlegt. Es wird ein Zeitraum von 30 Tagen betrachtet.</p>
+          <p className="mt-1 text-sm text-slate-600">Betrachteter Zeitraum: 30 Tage.</p>
         )}
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
           <dt className="text-slate-500">Fixkosten</dt>

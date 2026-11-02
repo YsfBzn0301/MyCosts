@@ -13,9 +13,9 @@ export function Logo({ animated = false, className }: Props) {
 
   return (
     <svg viewBox="0 0 512 512" className={className} role="img" aria-label="Fixkosten & Sparen">
-      <rect width="512" height="512" rx="112" fill="#4f46e5" />
-      <rect x="120" y="310" width="64" height="90" rx="32" fill="#a5b4fc" {...bar(120)} />
-      <rect x="210" y="250" width="64" height="150" rx="32" fill="#c7d2fe" {...bar(260)} />
+      <rect width="512" height="512" rx="112" fill="#0f172a" />
+      <rect x="120" y="310" width="64" height="90" rx="32" fill="#6ee7b7" {...bar(120)} />
+      <rect x="210" y="250" width="64" height="150" rx="32" fill="#a7f3d0" {...bar(260)} />
       <rect x="300" y="190" width="64" height="210" rx="32" fill="#ffffff" {...bar(400)} />
       <g className={animated ? 'logo-coin' : undefined}>
         <circle cx="392" cy="128" r="62" fill="#fbbf24" />
