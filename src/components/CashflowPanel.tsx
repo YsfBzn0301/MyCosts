@@ -1,8 +1,8 @@
 import { formatEUR } from '../domain/money';
-import { AnimatedEUR } from './AnimatedEUR';
 import type { CashflowResult, MonthEntry } from '../domain/cashflow';
 import type { PredictorWarning } from '../agents/cashflowPredictor';
 import { dateFormat } from './format';
+import { AnimatedEUR } from './AnimatedEUR';
 
 interface Props {
   result: CashflowResult;
@@ -10,89 +10,84 @@ interface Props {
   monthEntries: MonthEntry[];
 }
 
-const severityStyle: Record<PredictorWarning['severity'], string> = {
-  kritisch: 'bg-rose-50 text-rose-800 ring-rose-200',
-  warnung: 'bg-amber-50 text-amber-800 ring-amber-200',
-  info: 'bg-slate-50 text-slate-700 ring-slate-200',
+const warnStyle: Record<PredictorWarning['severity'], string> = {
+  kritisch: 'border-rose-600 text-rose-800',
+  warnung: 'border-amber-500 text-amber-800',
+  info: 'border-slate-300 text-slate-600',
 };
 
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-slate-200 py-3 last:border-0">
+      <dt className="text-sm text-slate-500">{label}</dt>
+      <dd className="tabular-nums text-slate-900">{children}</dd>
+    </div>
+  );
+}
+
 export function CashflowPanel({ result: r, warnings, monthEntries }: Props) {
-  const daysLeft = r.nextIncome ? r.windowDays : null;
-  const savingsNegative = r.plannedMonthlySavingCents < 0;
+  const planned = r.plannedMonthlySavingCents;
 
   return (
-    <section aria-label="Cashflow" className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl bg-emerald-600 p-5 text-white shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-emerald-100">Sicherer Sparbetrag heute</p>
-          <p className="mt-1 text-3xl font-bold tabular-nums"><AnimatedEUR cents={r.safeSavingsCents} /></p>
-          <p className="mt-2 text-sm text-emerald-50">
-            Sofort aufs Sparkonto überweisbar, ohne dass eine Fixkosten-Abbuchung bis zum Gehalt ins Minus rutscht.
-          </p>
-        </div>
-        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Restpuffer auf dem Girokonto</p>
-          <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900"><AnimatedEUR cents={r.restBufferCents} /></p>
-          <p className="mt-2 text-sm text-slate-500">
-            Muss bis zum nächsten Gehalt stehen bleiben.
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h3 className="text-sm font-semibold text-slate-700">Bis zum nächsten Gehalt</h3>
-        {r.nextIncome ? (
-          <p className="mt-1 text-sm text-slate-600">
-            {r.nextIncome.name} am {dateFormat.format(r.nextIncome.date)} ({formatEUR(r.nextIncome.amountCents)}), in {daysLeft} Tagen.
-          </p>
-        ) : (
-          <p className="mt-1 text-sm text-slate-600">Betrachteter Zeitraum: 30 Tage.</p>
-        )}
-        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-4">
-          <dt className="text-slate-500">Fixkosten</dt>
-          <dd className="text-right tabular-nums sm:text-left">{formatEUR(r.fixedUntilIncomeCents)}</dd>
-          <dt className="text-slate-500">Lebenshaltung</dt>
-          <dd className="text-right tabular-nums sm:text-left">{formatEUR(r.spendingUntilIncomeCents)}</dd>
-          <dt className="text-slate-500">Sicherheitspuffer</dt>
-          <dd className="text-right tabular-nums sm:text-left">{formatEUR(r.safetyCents)}</dd>
-          <dt className="text-slate-500">Prognose vor Gehalt</dt>
-          <dd className="text-right tabular-nums sm:text-left">{formatEUR(r.endBalanceCents)}</dd>
-        </dl>
-      </div>
-
-      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h3 className="text-sm font-semibold text-slate-700">Planung pro Monat</h3>
-        <p className={`mt-1 text-2xl font-bold tabular-nums ${savingsNegative ? 'text-rose-600' : 'text-slate-900'}`}>
-          <AnimatedEUR cents={r.plannedMonthlySavingCents} />
+    <section aria-label="Cashflow" className="space-y-10">
+      <div>
+        <p className="text-sm text-slate-500">Sicher sparen heute</p>
+        <p className="mt-1 text-6xl font-semibold tracking-tight tabular-nums text-emerald-700 sm:text-7xl">
+          <AnimatedEUR cents={r.safeSavingsCents} />
         </p>
-        <p className="text-sm text-slate-500">
-          Einnahmen {formatEUR(r.monthlyIncomeCents)} − Fixkosten {formatEUR(r.monthlyFixedCents)} − Lebenshaltung {formatEUR(r.monthlySpendCents)}
+        <p className="mt-3 max-w-prose text-slate-600">
+          {r.nextIncome
+            ? `Ohne Überziehung bis zum Gehalt am ${dateFormat.format(r.nextIncome.date)}, in ${r.windowDays} Tagen.`
+            : 'Ohne hinterlegtes Gehalt betrachtet die Prognose die nächsten 30 Tage.'}
         </p>
       </div>
+
+      <dl className="max-w-md">
+        <Row label="Restpuffer auf dem Girokonto">
+          <AnimatedEUR cents={r.restBufferCents} />
+        </Row>
+        <Row label="Fixkosten bis Gehalt">{formatEUR(r.fixedUntilIncomeCents)}</Row>
+        <Row label="Lebenshaltung bis Gehalt">{formatEUR(r.spendingUntilIncomeCents)}</Row>
+        <Row label="Sicherheitspuffer">{formatEUR(r.safetyCents)}</Row>
+        <Row label="Kontostand vor Gehalt">{formatEUR(r.endBalanceCents)}</Row>
+        <Row label="Planung pro Monat">
+          <span className={planned < 0 ? 'text-rose-700' : undefined}>
+            <AnimatedEUR cents={planned} />
+          </span>
+        </Row>
+      </dl>
+      <p className="-mt-6 text-xs text-slate-500">
+        Einnahmen {formatEUR(r.monthlyIncomeCents)} − Fixkosten {formatEUR(r.monthlyFixedCents)} − Lebenshaltung{' '}
+        {formatEUR(r.monthlySpendCents)}
+      </p>
 
       {warnings.length > 0 && (
-        <ul className="space-y-2" aria-label="Hinweise">
+        <ul className="space-y-3" aria-label="Hinweise">
           {warnings.map((w, i) => (
-            <li key={i} role={w.severity === 'kritisch' ? 'alert' : undefined} className={`animate-pop rounded-xl px-4 py-3 text-sm ring-1 ${severityStyle[w.severity]}`}>
+            <li
+              key={i}
+              role={w.severity === 'kritisch' ? 'alert' : undefined}
+              className={`animate-pop border-l-2 pl-3 text-sm ${warnStyle[w.severity]}`}
+            >
               {w.message}
             </li>
           ))}
         </ul>
       )}
 
-      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h3 className="text-sm font-semibold text-slate-700">Abbuchungen diesen Monat</h3>
+      <div>
+        <h2 className="text-sm text-slate-500">Abbuchungen diesen Monat</h2>
         {monthEntries.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">Keine Fixkosten in diesem Monat.</p>
+          <p className="mt-3 text-sm text-slate-500">Keine Fixkosten in diesem Monat.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-slate-100 text-sm">
+          <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-200 text-sm">
             {monthEntries.map((e, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 py-2 transition-colors hover:bg-slate-50">
-                <span className="text-slate-500 tabular-nums">{dateFormat.format(e.date)}</span>
-                <span className="flex-1 truncate text-slate-800">{e.name}</span>
-                {e.beforeIncome && (
-                  <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">vor Gehalt</span>
-                )}
+              <li key={i} className="grid grid-cols-[5.5rem_1fr_auto] items-baseline gap-3 py-2.5">
+                <span className="tabular-nums text-slate-500">{dateFormat.format(e.date)}</span>
+                <span className="truncate text-slate-900">
+                  {e.name}
+                  {e.beforeIncome && <span className="ml-2 text-xs text-amber-700">vor Gehalt</span>}
+                </span>
                 <span className="tabular-nums text-slate-900">{formatEUR(e.amountCents)}</span>
               </li>
             ))}
