@@ -1,4 +1,5 @@
 import { formatEUR } from '../domain/money';
+import { AnimatedEUR } from './AnimatedEUR';
 import type { CashflowResult, MonthEntry } from '../domain/cashflow';
 import type { PredictorWarning } from '../agents/cashflowPredictor';
 import { dateFormat } from './format';
@@ -24,14 +25,14 @@ export function CashflowPanel({ result: r, warnings, monthEntries }: Props) {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="rounded-2xl bg-emerald-600 p-5 text-white shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wide text-emerald-100">Sicherer Sparbetrag heute</p>
-          <p className="mt-1 text-3xl font-bold tabular-nums">{formatEUR(r.safeSavingsCents)}</p>
+          <p className="mt-1 text-3xl font-bold tabular-nums"><AnimatedEUR cents={r.safeSavingsCents} /></p>
           <p className="mt-2 text-sm text-emerald-50">
             Sofort aufs Sparkonto überweisbar, ohne dass eine Fixkosten-Abbuchung bis zum Gehalt ins Minus rutscht.
           </p>
         </div>
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Restpuffer auf dem Girokonto</p>
-          <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">{formatEUR(r.restBufferCents)}</p>
+          <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900"><AnimatedEUR cents={r.restBufferCents} /></p>
           <p className="mt-2 text-sm text-slate-500">
             Muss bis zum nächsten Gehalt stehen bleiben.
           </p>
@@ -62,7 +63,7 @@ export function CashflowPanel({ result: r, warnings, monthEntries }: Props) {
       <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <h3 className="text-sm font-semibold text-slate-700">Planung pro Monat</h3>
         <p className={`mt-1 text-2xl font-bold tabular-nums ${savingsNegative ? 'text-rose-600' : 'text-slate-900'}`}>
-          {formatEUR(r.plannedMonthlySavingCents)}
+          <AnimatedEUR cents={r.plannedMonthlySavingCents} />
         </p>
         <p className="text-sm text-slate-500">
           Einnahmen {formatEUR(r.monthlyIncomeCents)} − Fixkosten {formatEUR(r.monthlyFixedCents)} − Lebenshaltung {formatEUR(r.monthlySpendCents)}
@@ -72,7 +73,7 @@ export function CashflowPanel({ result: r, warnings, monthEntries }: Props) {
       {warnings.length > 0 && (
         <ul className="space-y-2" aria-label="Hinweise">
           {warnings.map((w, i) => (
-            <li key={i} role={w.severity === 'kritisch' ? 'alert' : undefined} className={`rounded-xl px-4 py-3 text-sm ring-1 ${severityStyle[w.severity]}`}>
+            <li key={i} role={w.severity === 'kritisch' ? 'alert' : undefined} className={`animate-pop rounded-xl px-4 py-3 text-sm ring-1 ${severityStyle[w.severity]}`}>
               {w.message}
             </li>
           ))}
@@ -86,7 +87,7 @@ export function CashflowPanel({ result: r, warnings, monthEntries }: Props) {
         ) : (
           <ul className="mt-3 divide-y divide-slate-100 text-sm">
             {monthEntries.map((e, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 py-2">
+              <li key={i} className="flex items-center justify-between gap-3 py-2 transition-colors hover:bg-slate-50">
                 <span className="text-slate-500 tabular-nums">{dateFormat.format(e.date)}</span>
                 <span className="flex-1 truncate text-slate-800">{e.name}</span>
                 {e.beforeIncome && (

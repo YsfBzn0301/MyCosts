@@ -33,7 +33,7 @@ export function IncomePanel({ incomes, onAdd, onRemove }: Props) {
       {incomes.length > 0 && (
         <ul className="mt-4 divide-y divide-slate-100">
           {incomes.map((i) => (
-            <li key={i.id} className="flex items-center justify-between gap-3 py-3">
+            <li key={i.id} className="animate-fade-up flex items-center justify-between gap-3 py-3">
               <div>
                 <p className="font-medium text-slate-900">{i.name}</p>
                 <p className="text-xs text-slate-500">jeden Monat am {i.payDay}.</p>

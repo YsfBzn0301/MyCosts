@@ -1,5 +1,55 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-fade-up: fade-up 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-pop: pop-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes coin-drop {
+  from { opacity: 0; transform: translateY(-70px); }
+  60% { opacity: 1; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Logo-Animation (Startscreen) */
+.logo-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bar-grow 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.logo-coin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: coin-drop 800ms cubic-bezier(0.3, 0.9, 0.4, 1) 500ms both;
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -11,5 +61,31 @@
   dialog::backdrop {
     background: rgb(15 23 42 / 0.45);
     backdrop-filter: blur(2px);
+    animation: backdrop-in 220ms ease-out both;
+  }
+  dialog[open] {
+    animation: dialog-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  /* Buttons und Eingabefelder bekommen weiche Zustandswechsel. */
+  button:not(:disabled) {
+    transition: transform 150ms ease-out, background-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  }
+  button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+  input,
+  select {
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+  }
+}
+
+/* Barrierefreiheit: Bewegung reduzieren, wenn der Nutzer das im System gewählt hat. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

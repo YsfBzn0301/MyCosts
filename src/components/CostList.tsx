@@ -36,7 +36,7 @@ export function CostList({ items, onEdit, onDelete, onCreate }: Props) {
   return (
     <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
       {items.map(({ cost, next }) => (
-        <li key={cost.id} className="flex items-center gap-3 p-4">
+        <li key={cost.id} className="animate-fade-up flex items-center gap-3 p-4 transition-colors hover:bg-slate-50">
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium text-slate-900">{cost.name}</p>
             <p className="mt-0.5 text-xs leading-relaxed text-slate-500">

@@ -1,36 +1,40 @@
-"""Erzeugt die PNG-Icons aus dem Design von public/icon.svg (Pillow, keine Schriftarten nötig).
+"""Erzeugt die PNG-Icons aus der Geometrie von public/icon.svg (Pillow).
 
 Ausführen:  python3 scripts/make-icons.py
 """
 from PIL import Image, ImageDraw
 
 INDIGO = (79, 70, 229)
+BAR_A = (165, 180, 252)
+BAR_B = (199, 210, 254)
 WHITE = (255, 255, 255)
-LIGHT = (199, 210, 254)
+COIN = (251, 191, 36)
+COIN_RING = (253, 230, 138)
 
 
 def draw(size: int, padding: float, radius_ratio: float, path: str) -> None:
-    """padding: Anteil des Rands (0.0 = Vollbild, Maskable-Icons brauchen ~0.1)."""
-    scale = size / 512
+    """padding: Rand als Anteil (Maskable-Icons ~0.12); radius_ratio 0 = eckig."""
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(canvas)
-    d.rounded_rectangle([0, 0, size - 1, size - 1], radius=int(112 * scale * radius_ratio), fill=INDIGO)
+    d.rounded_rectangle([0, 0, size - 1, size - 1], radius=int(112 * size / 512 * radius_ratio), fill=INDIGO)
 
     inset = padding * size
-    inner = size - 2 * inset
-    k = inner / 512  # Designkoordinaten (0..512) auf den inneren Bereich abbilden
+    k = (size - 2 * inset) / 512
 
-    def bar(x: float, y: float, w: float, h: float, color) -> None:
-        r = h / 2
-        d.rounded_rectangle(
-            [inset + x * k, inset + y * k, inset + (x + w) * k, inset + (y + h) * k],
-            radius=r * k,
-            fill=color,
-        )
+    def p(x: float, y: float) -> tuple[float, float]:
+        return (inset + x * k, inset + y * k)
 
-    bar(128, 150, 256, 60, WHITE)
-    bar(128, 236, 200, 60, LIGHT)
-    bar(128, 322, 150, 60, WHITE)
+    def rr(x: float, y: float, w: float, h: float, color) -> None:
+        d.rounded_rectangle([*p(x, y), *p(x + w, y + h)], radius=32 * k, fill=color)
+
+    def circle(cx: float, cy: float, r: float, fill=None, outline=None, width=0) -> None:
+        d.ellipse([*p(cx - r, cy - r), *p(cx + r, cy + r)], fill=fill, outline=outline, width=int(width * k))
+
+    rr(120, 310, 64, 90, BAR_A)
+    rr(210, 250, 64, 150, BAR_B)
+    rr(300, 190, 64, 210, WHITE)
+    circle(392, 128, 62, fill=COIN)
+    circle(392, 128, 40, outline=COIN_RING, width=12)
     canvas.save(path, optimize=True)
 
 

@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import { formatEUR } from '../domain/money';
+import { AnimatedEUR } from './AnimatedEUR';
 import type { Totals } from '../agents/uiDataWorker';
 import type { FixedCost } from '../domain/types';
 import { dateFormat } from './format';
@@ -8,7 +10,7 @@ interface Props {
   next: { cost: FixedCost; date: Date } | null;
 }
 
-function Card({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Card({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
@@ -21,8 +23,8 @@ function Card({ label, value, sub }: { label: string; value: string; sub?: strin
 export function SummaryCards({ totals, next }: Props) {
   return (
     <section aria-label="Zusammenfassung" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      <Card label="Monatlich" value={formatEUR(totals.monthlyCents)} sub={`${totals.count} Posten`} />
-      <Card label="Jährlich hochgerechnet" value={formatEUR(totals.yearlyCents)} />
+      <Card label="Monatlich" value={<AnimatedEUR cents={totals.monthlyCents} />} sub={`${totals.count} Posten`} />
+      <Card label="Jährlich hochgerechnet" value={<AnimatedEUR cents={totals.yearlyCents} />} />
       <Card
         label="Nächste Fälligkeit"
         value={next ? next.cost.name : '–'}

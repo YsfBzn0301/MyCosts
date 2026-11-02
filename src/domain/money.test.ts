@@ -7,6 +7,8 @@ describe('parseAmountToCents', () => {
     expect(parseAmountToCents('12.99')).toBe(1299);
     expect(parseAmountToCents('1.200,50')).toBe(120050);
     expect(parseAmountToCents(' 9 ')).toBe(900);
+    expect(parseAmountToCents('1.000')).toBe(100000);
+    expect(parseAmountToCents('2.850.000')).toBe(285000000);
   });
 
   it('lehnt ungültige oder nicht positive Werte ab', () => {

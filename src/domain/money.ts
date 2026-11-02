@@ -25,6 +25,9 @@ export function parseAmountToCents(input: string, opts: AmountOptions = {}): num
   if (s.includes(',')) {
     // Deutsches Format: Punkte sind Tausendertrenner, Komma ist Dezimaltrenner.
     s = s.replace(/\./g, '').replace(',', '.');
+  } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+    // "1.000" oder "2.850.000": Punkt als Tausendertrenner (drei Ziffern danach ist nie ein Dezimalbruch).
+    s = s.replace(/\./g, '');
   }
   if (!/^\d{1,7}(\.\d{1,2})?$/.test(s)) return null;
   const cents = Math.round(Number(s) * 100);

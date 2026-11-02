@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { FixedCost, FixedCostValues } from './domain/types';
 import { nextDueDate } from './domain/schedule';
 import { routeBudget } from './agents/budgetRouter';
@@ -16,6 +16,9 @@ import { SummaryCards } from './components/SummaryCards';
 import { CategoryBreakdown } from './components/CategoryBreakdown';
 import { CostList, type ListItem } from './components/CostList';
 import { CostFormDialog } from './components/CostFormDialog';
+import { Splash } from './components/Splash';
+import { Reveal } from './components/Reveal';
+import { Logo } from './components/Logo';
 
 export default function App() {
   const costsState = useCosts();
@@ -26,6 +29,8 @@ export default function App() {
   const { canInstall, install } = useInstallPrompt();
   const [dialog, setDialog] = useState<{ cost: FixedCost | null } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [splashDone, setSplashDone] = useState(false);
+  const finishSplash = useCallback(() => setSplashDone(true), []);
 
   const today = useMemo(() => new Date(), [costs, incomes, settings]);
 
@@ -81,10 +86,15 @@ export default function App() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-3xl px-4 pb-16 pt-6 sm:px-6">
+      {!splashDone && <Splash onDone={finishSplash} />}
+
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-3">
+          <Logo className="h-11 w-11 shrink-0 drop-shadow-sm" />
+          <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Fixkosten & Sparen</h1>
           <p className="text-sm text-slate-500">Was du heute sicher sparen kannst – und was bis zum Gehalt bleiben muss</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {canInstall && (
@@ -113,10 +123,17 @@ export default function App() {
       </div>
 
       <main className="mt-6 space-y-6">
-        <CashflowPanel result={result} warnings={warnings} monthEntries={monthEntries} />
-        <SettingsPanel settings={settings} onSave={finance.setSettings} />
-        <IncomePanel incomes={incomes} onAdd={finance.addIncomeItem} onRemove={finance.removeIncomeItem} />
+        <Reveal delay={0}>
+          <CashflowPanel result={result} warnings={warnings} monthEntries={monthEntries} />
+        </Reveal>
+        <Reveal delay={90}>
+          <SettingsPanel settings={settings} onSave={finance.setSettings} />
+        </Reveal>
+        <Reveal delay={180}>
+          <IncomePanel incomes={incomes} onAdd={finance.addIncomeItem} onRemove={finance.removeIncomeItem} />
+        </Reveal>
 
+        <Reveal delay={270}>
         <section aria-label="Fixkosten" className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-900">Fixkosten</h2>
           <SummaryCards totals={totals} next={next} />
@@ -128,7 +145,9 @@ export default function App() {
             onDelete={handleDelete}
           />
         </section>
+        </Reveal>
 
+        <Reveal delay={360}>
         <section aria-label="Daten" className="flex flex-wrap items-center gap-3 text-sm">
           <span className="text-slate-500">Daten liegen nur auf diesem Gerät.</span>
           <button onClick={handleExport} className="rounded-lg px-3 py-1.5 text-indigo-600 hover:bg-indigo-50">Exportieren</button>
@@ -146,6 +165,7 @@ export default function App() {
             />
           </label>
         </section>
+        </Reveal>
       </main>
 
       {dialog && <CostFormDialog cost={dialog.cost} onClose={() => setDialog(null)} onSave={handleSave} />}
