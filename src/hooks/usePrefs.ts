@@ -18,7 +18,12 @@ export function usePrefs() {
 
   useEffect(() => {
     const root = document.documentElement;
-    const apply = () => root.classList.toggle('dark', resolveDark(prefs.theme));
+    const apply = () => {
+      const dark = resolveDark(prefs.theme);
+      root.classList.toggle('dark', dark);
+      // Farbe der Statusleiste (iOS/Android) an das gewählte Design anpassen.
+      document.getElementById('theme-color')?.setAttribute('content', dark ? '#151417' : '#f6f3ee');
+    };
     apply();
     if (prefs.theme !== 'system') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
