@@ -23,6 +23,7 @@ import { Intro, introAlreadyShown } from './components/Intro';
 import { BottomNav, type Tab } from './components/BottomNav';
 import { CostFormDialog } from './components/CostFormDialog';
 import { TransferDialog } from './components/TransferDialog';
+import { SetupWizard, type SetupResult } from './components/SetupWizard';
 import { ReminderBanner } from './components/ReminderBanner';
 import { DashboardPage } from './pages/DashboardPage';
 import { FixedPage } from './pages/FixedPage';
@@ -55,6 +56,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [dialog, setDialog] = useState<{ cost: FixedCost | null } | null>(null);
   const [transfer, setTransfer] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   // Phasen der Intro: 'logo' (nur Logo), 'zoom' (Inhalt durch die Aussparungen), 'done'.
   const [introPhase, setIntroPhase] = useState<'logo' | 'zoom' | 'done'>(() => (introAlreadyShown() ? 'done' : 'logo'));
@@ -71,6 +73,22 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
 
   const { costs, upsert, remove } = costsState;
   const { incomes, settings } = finance;
+
+  // Erststart: nach der Intro die Einrichtung öffnen, solange noch nichts eingetragen ist.
+  useEffect(() => {
+    if (introPhase === 'done' && costsState.costs.length === 0 && finance.incomes.length === 0) setWizardOpen(true);
+    // Bewusst nur beim Ende der Intro prüfen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [introPhase]);
+
+  const finishSetup = (r: SetupResult) => {
+    for (const inc of r.incomes) finance.addIncomeItem(inc);
+    for (const c of r.costs) upsert(null, c);
+    finance.setSettings({ balanceCents: r.balanceCents, monthlySpendCents: r.monthlySpendCents, safetyCents: settings.safetyCents });
+    setWizardOpen(false);
+    setNotice(t('wizard.finish'));
+    setTimeout(() => setNotice(null), 2000);
+  };
   const today = useMemo(() => new Date(), [costs, incomes, settings]);
 
   const result = useMemo(() => routeBudget({ today, costs, incomes, settings }), [today, costs, incomes, settings]);
@@ -265,6 +283,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
             onCreateCost={() => setDialog({ cost: null })}
             onEditCost={(cost) => setDialog({ cost })}
             onDeleteCost={handleDeleteCost}
+            onSetup={() => setWizardOpen(true)}
           />
         )}
         {tab === 'assets' && (
@@ -305,6 +324,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
       <BottomNav tab={tab} onChange={setTab} />
 
       {dialog && <CostFormDialog cost={dialog.cost} onClose={() => setDialog(null)} onSave={handleSaveCost} />}
+      {wizardOpen && <SetupWizard onFinish={finishSetup} onClose={() => setWizardOpen(false)} />}
       {transfer && (
         <TransferDialog amountCents={result.safeSavingsCents} savings={portfolio.savings} onClose={() => setTransfer(false)} onConfirm={confirmTransfer} />
       )}

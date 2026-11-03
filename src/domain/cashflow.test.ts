@@ -101,3 +101,24 @@ describe('monthOverview', () => {
     ]);
   });
 });
+
+describe('Gehalt am Monatsende für den Folgemonat', () => {
+  it('rechnet Abbuchungen bis zum nächsten Zahltag über den Monatswechsel', () => {
+    // Heute 28.11., Gehalt jeden 27. — Fenster 28.11. bis 26.12.
+    const r = computeCashflow({
+      today: d(2026, 11, 28),
+      incomes: [salary(27)],
+      costs: [
+        cost('Abo', 1299, 30),
+        cost('Miete', 85000, 1),
+        cost('Strom', 5000, 5),
+        cost('Versicherung', 4000, 15),
+      ],
+      settings: { balanceCents: 100000, monthlySpendCents: 0, safetyCents: 0 },
+    });
+    expect(r.nextIncome?.date).toEqual(d(2026, 12, 27));
+    expect(r.outflows.map((o) => o.name)).toEqual(['Abo', 'Miete', 'Strom', 'Versicherung']);
+    expect(r.restBufferCents).toBe(1299 + 85000 + 5000 + 4000);
+    expect(r.safeSavingsCents).toBe(100000 - 95299);
+  });
+});

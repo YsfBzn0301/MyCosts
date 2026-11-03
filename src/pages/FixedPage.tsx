@@ -6,6 +6,8 @@ import type { CashflowResult, MonthEntry } from '../domain/cashflow';
 import type { CategoryTotal, Totals } from '../agents/uiDataWorker';
 import type { PredictorWarning } from '../agents/cashflowPredictor';
 import type { CashSettings, FixedCost, Income, IncomeValues } from '../domain/types';
+import { useI18n } from '../i18n';
+import { ghostButton } from '../components/fieldStyles';
 
 interface Props {
   result: CashflowResult;
@@ -24,11 +26,18 @@ interface Props {
   onCreateCost: () => void;
   onEditCost: (c: FixedCost) => void;
   onDeleteCost: (c: FixedCost) => void;
+  onSetup: () => void;
 }
 
 export function FixedPage(p: Props) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button onClick={p.onSetup} className={`${ghostButton} inline-flex items-center gap-2`}>
+          {t('wizard.open')}
+        </button>
+      </div>
       <CashflowPanel result={p.result} warnings={p.warnings} monthEntries={p.monthEntries} canTransfer={p.result.safeSavingsCents > 0} onTransfer={p.onTransfer} />
       <IncomePanel incomes={p.incomes} onAdd={p.onAddIncome} onRemove={p.onRemoveIncome} />
       <SettingsPanel settings={p.settings} onSave={p.onSaveSettings} />
