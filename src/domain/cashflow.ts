@@ -75,9 +75,11 @@ export function computeCashflow({ today, costs, incomes, settings }: CashflowInp
   const windowEnd = nextIncome ? nextIncome.date : addDays(t0, HORIZON_DAYS);
   const windowDays = Math.round((windowEnd.getTime() - t0.getTime()) / DAY_MS);
 
+  // Vorsichtig gerechnet: Abbuchungen am Zahltag zählen noch zum Fenster.
+  const inclusiveEnd = addDays(windowEnd, 1);
   const outflows: Outflow[] = costs
     .flatMap((c) =>
-      occurrencesInRange(c, t0, windowEnd).map((date) => ({ date, name: c.name, amountCents: c.amountCents })),
+      occurrencesInRange(c, t0, inclusiveEnd).map((date) => ({ date, name: c.name, amountCents: c.amountCents })),
     )
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -89,9 +91,10 @@ export function computeCashflow({ today, costs, incomes, settings }: CashflowInp
   // Prognose tagesgenau: Lebenshaltung fließt täglich ab, Fixkosten am Fälligkeitstag.
   let running = settings.balanceCents;
   let firstShortfall: Shortfall | null = null;
-  for (let i = 0; i < windowDays; i++) {
+  for (let i = 0; i <= windowDays; i++) {
     const day = addDays(t0, i);
-    running -= daily;
+    // Lebenshaltung nur für die Tage des Fensters, Abbuchungen auch am Zahltag.
+    if (i < windowDays) running -= daily;
     for (const o of outflows) {
       if (o.date.getTime() === day.getTime()) running -= o.amountCents;
     }
@@ -142,7 +145,7 @@ export function monthOverview(costs: FixedCost[], today: Date, windowEnd: Date):
         date,
         name: c.name,
         amountCents: c.amountCents,
-        beforeIncome: date >= t0 && date < windowEnd,
+        beforeIncome: date >= t0 && date <= windowEnd,
       })),
     )
     .sort((a, b) => a.date.getTime() - b.date.getTime());

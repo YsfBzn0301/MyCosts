@@ -122,3 +122,16 @@ describe('Gehalt am Monatsende für den Folgemonat', () => {
     expect(r.safeSavingsCents).toBe(100000 - 95299);
   });
 });
+
+describe('Abbuchung am Zahltag', () => {
+  it('zählt eine Abbuchung am Zahltag als Abzug vor dem Gehalt', () => {
+    const r = computeCashflow({
+      today: d(2026, 11, 20),
+      incomes: [salary(25)],
+      costs: [cost('Strom', 5000, 25)],
+      settings: { balanceCents: 10000, monthlySpendCents: 0, safetyCents: 0 },
+    });
+    expect(r.outflows.map((o) => o.name)).toEqual(['Strom']);
+    expect(r.safeSavingsCents).toBe(5000);
+  });
+});
