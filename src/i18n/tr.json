@@ -256,5 +256,17 @@
   "template.internet": "İnternet",
   "template.phone": "Telefon",
   "template.insurance": "Sigorta",
-  "template.subscription": "Abonelik"
+  "template.subscription": "Abonelik",
+  "quick.title": "Hızlı kayıt",
+  "quick.hint": "Tek bir cümle yeter, ör. „Kira 850 on 1“ ya da „Maaş 2.850 on 27“. En iyi sonuç için Almanca yaz.",
+  "quick.placeholder": "Kira 850 on 1",
+  "quick.detect": "Algıla",
+  "quick.kindCost": "Sabit gider",
+  "quick.kindIncome": "Gelir",
+  "quick.save": "Kaydet",
+  "quick.errEmpty": "Lütfen bir cümle gir.",
+  "quick.errAmount": "Bir tutar bulamadım. Örneğin: „Kira 850“.",
+  "quick.errName": "Bir ad bulamadım. Örneğin: „Elektrik 56,61“.",
+  "quick.errYearly": "Yıllık kalemleri „+ Kalem“ ile ekle, orada ayı seçersin.",
+  "quick.noteDay": "Gün bulunamadı, bu yüzden ayın 1. günü kullanıldı. Sonradan değiştirebilirsin."
 }

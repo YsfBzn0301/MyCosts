@@ -256,5 +256,17 @@
   "template.internet": "Internet",
   "template.phone": "Handy",
   "template.insurance": "Versicherung",
-  "template.subscription": "Abo"
+  "template.subscription": "Abo",
+  "quick.title": "Schnell eintragen",
+  "quick.hint": "Ein Satz genügt, z. B. „Miete 850 am 1.“ oder „Gehalt 2.850 am 27.“",
+  "quick.placeholder": "Miete 850 am 1.",
+  "quick.detect": "Erkennen",
+  "quick.kindCost": "Fixkosten-Posten",
+  "quick.kindIncome": "Einnahme",
+  "quick.save": "Speichern",
+  "quick.errEmpty": "Bitte einen Satz eingeben.",
+  "quick.errAmount": "Ich finde keinen Betrag. Schreibe z. B. „Miete 850“.",
+  "quick.errName": "Ich finde keinen Namen. Schreibe z. B. „Strom 56,61“.",
+  "quick.errYearly": "Jährliche Posten bitte über „+ Posten“ anlegen, dort wählst du den Monat.",
+  "quick.noteDay": "Kein Tag erkannt, deshalb der 1. des Monats. Du kannst ihn später ändern."
 }

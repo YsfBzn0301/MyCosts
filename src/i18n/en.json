@@ -256,5 +256,17 @@
   "template.internet": "Internet",
   "template.phone": "Phone",
   "template.insurance": "Insurance",
-  "template.subscription": "Subscription"
+  "template.subscription": "Subscription",
+  "quick.title": "Quick entry",
+  "quick.hint": "One sentence is enough, e.g. “Rent 850 on 1” or “Salary 2,850 on 27”. Write in German for best results.",
+  "quick.placeholder": "Rent 850 on 1",
+  "quick.detect": "Detect",
+  "quick.kindCost": "Fixed cost",
+  "quick.kindIncome": "Income",
+  "quick.save": "Save",
+  "quick.errEmpty": "Please enter a sentence.",
+  "quick.errAmount": "I can't find an amount. For example: “Rent 850”.",
+  "quick.errName": "I can't find a name. For example: “Electricity 56.61”.",
+  "quick.errYearly": "Please add yearly items with “+ Item”, where you choose the month.",
+  "quick.noteDay": "No day found, so the 1st of the month is used. You can change it later."
 }

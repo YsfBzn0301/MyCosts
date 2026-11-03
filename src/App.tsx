@@ -284,6 +284,7 @@ function Shell({ prefs }: { prefs: ReturnType<typeof usePrefs> }) {
             onEditCost={(cost) => setDialog({ cost })}
             onDeleteCost={handleDeleteCost}
             onSetup={() => setWizardOpen(true)}
+            onQuickCost={(v) => upsert(null, v)}
           />
         )}
         {tab === 'assets' && (
